@@ -1,0 +1,77 @@
+{
+  "identity": {
+    "name": "LocalTrader-01",
+    "version": "0.1.0"
+  },
+  "trading": {
+    "symbols": ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "AVAX/USDT", "LINK/USDT", "DOT/USDT", "MATIC/USDT"],
+    "default_timeframe": "1h",
+    "candle_lookback": 200,
+    "paper_mode": true
+  },
+  "risk": {
+    "max_risk_per_trade_pct": 0.02,
+    "max_concurrent_positions": 5,
+    "max_correlated_positions": 2,
+    "max_daily_loss_pct": 0.05,
+    "max_monthly_drawdown_pct": 0.15,
+    "always_use_stop_loss": true,
+    "stop_loss_deadline_minutes": 60,
+    "slippage_budget_pct": 0.005,
+    "use_exchange_native_stops": true
+  },
+  "exchange": {
+    "id": "binance",
+    "sandbox": false
+  },
+  "strategies": {
+    "enabled": ["momentum", "vcp", "mean-reversion"],
+    "auto_regime_detection": true,
+    "dca": {
+      "order_count": 5,
+      "price_deviation_pct": 0.01,
+      "safety_orders": true,
+      "safety_order_multiplier": 1.5
+    },
+    "grid": {
+      "levels": 10,
+      "mode": "geometric"
+    },
+    "momentum": {
+      "rsi_oversold": 30,
+      "rsi_overbought": 70,
+      "trailing_stop_pct": 0.03
+    }
+  },
+  "survival": {
+    "initial_balance_usdt": 500,
+    "cautious_threshold_pct": 0.70,
+    "critical_threshold_pct": 0.50,
+    "stopped_threshold_pct": 0.25,
+    "emergency_liquidation": {
+      "method": "limit_then_market",
+      "limit_timeout_minutes": 5
+    }
+  },
+  "heartbeat": {
+    "position_monitor_ms": 30000,
+    "market_scanner_ms": 60000,
+    "economic_check_ms": 300000,
+    "strategy_rotation_ms": 900000
+  },
+  "ai": {
+    "enabled_if_key_present": true,
+    "max_daily_spend_usd": 5.00,
+    "model_tiers": {
+      "bootstrap": "claude-haiku-4-5-20251001",
+      "profitable": "claude-sonnet-4-6",
+      "well_funded": "claude-opus-4-6"
+    }
+  },
+  "dashboard": {
+    "port": 3000,
+    "log_polling_interval_ms": 3000,
+    "max_log_lines": 500
+  },
+  "_stock_mode_note": "To trade stocks: set exchange.id to 'alpaca', add ALPACA_API_KEY and ALPACA_SECRET_KEY to .env, and change trading.symbols to stock tickers like ['AAPL','MSFT','GOOGL','NVDA','TSLA']"
+}

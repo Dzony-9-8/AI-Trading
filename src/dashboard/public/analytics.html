@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav a.active { color: #f0f6fc; font-weight: bold; pointer-events: none; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    /* Stats row */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; }
+    .stat-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #f0f6fc; }
+    .stat-value.green { color: #3fb950; }
+    .stat-value.red { color: #f85149; }
+    .stat-value.blue { color: #58a6ff; }
+    .stat-value.yellow { color: #d29922; }
+
+    /* Charts grid */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .chart-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-title { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+    .chart-wrap { position: relative; height: 220px; }
+
+    /* Strategy table */
+    .strategy-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .strategy-table th { text-align: left; padding: 8px 12px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 11px; text-transform: uppercase; }
+    .strategy-table td { padding: 10px 12px; border-top: 1px solid #21262d; }
+    .win-bar-wrap { background: #21262d; border-radius: 3px; height: 8px; width: 100%; }
+    .win-bar { background: #3fb950; border-radius: 3px; height: 8px; }
+
+    /* Heatmap */
+    .heatmap-wrap { overflow-x: auto; margin-top: 8px; }
+    .heatmap-table { border-collapse: collapse; font-size: 11px; }
+    .heatmap-table th { color: #8b949e; font-weight: normal; padding: 2px 6px; text-align: center; }
+    .heatmap-table td { width: 28px; height: 28px; border-radius: 3px; text-align: center; vertical-align: middle; font-size: 10px; cursor: default; position: relative; }
+    .hm-label { color: #8b949e; padding-right: 8px; text-align: right; white-space: nowrap; }
+    .empty-state { color: #8b949e; text-align: center; padding: 40px; font-size: 13px; }
+
+    @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } .chart-card.full { grid-column: 1; } }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics" class="active">Analytics</a>
+  </nav>
+
+  <div class="container">
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value blue" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value" id="statWinRate">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profit Factor</div>
+        <div class="stat-value" id="statPF">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Win</div>
+        <div class="stat-value green" id="statAvgWin">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Loss</div>
+        <div class="stat-value red" id="statAvgLoss">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sharpe Ratio</div>
+        <div class="stat-value" id="statSharpe">—</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <!-- Equity curve -->
+      <div class="chart-card">
+        <div class="chart-title">Equity Curve (Balance)</div>
+        <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
+      </div>
+
+      <!-- Drawdown -->
+      <div class="chart-card">
+        <div class="chart-title">Drawdown %</div>
+        <div class="chart-wrap"><canvas id="drawdownChart"></canvas></div>
+      </div>
+
+      <!-- Strategy breakdown -->
+      <div class="chart-card">
+        <div class="chart-title">Strategy Breakdown</div>
+        <div id="strategyContent"><div class="empty-state">No trade data yet</div></div>
+      </div>
+
+      <!-- Daily P&L heatmap -->
+      <div class="chart-card">
+        <div class="chart-title">Daily P&L Heatmap</div>
+        <div id="heatmapContent"><div class="empty-state">No trade data yet</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let equityChart, drawdownChart;
+
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#21262d', titleColor: '#c9d1d9', bodyColor: '#8b949e', borderColor: '#30363d', borderWidth: 1 } },
+      scales: {
+        x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 8 } },
+        y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { size: 10 } } },
+      },
+    };
+
+    function fmt(n, decimals = 2) { return n === null || n === undefined ? '—' : Number(n).toFixed(decimals); }
+    function fmtUsd(n) { return n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`; }
+
+    function colorClass(val) { return val > 0 ? 'green' : val < 0 ? 'red' : ''; }
+
+    // ── Equity + Drawdown charts ─────────────────────────────────────────────
+    function renderEquityCharts(equity) {
+      const labels  = equity.map(r => r.date?.slice(5) || '');
+      const balance = equity.map(r => r.ending_balance ?? r.starting_balance ?? 0);
+      const dd      = equity.map(r => -(r.drawdown_pct ?? 0));
+
+      const eCtx = document.getElementById('equityChart').getContext('2d');
+      if (equityChart) equityChart.destroy();
+      equityChart = new Chart(eCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: balance,
+            borderColor: '#3fb950',
+            backgroundColor: 'rgba(63,185,80,0.08)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointRadius: balance.length > 30 ? 0 : 3,
+          }],
+        },
+        options: {
+          ...chartDefaults,
+          plugins: { ...chartDefaults.plugins },
+          scales: {
+            ...chartDefaults.scales,
+            y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => '$' + v } },
+          },
+        },
+      });
+
+      const dCtx = document.getElementById('drawdownChart').getContext('2d');
+      if (drawdownChart) drawdownChart.destroy();
+      drawdownChart = new Chart(dCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: dd,
+            borderColor: '#f85149',
+            backgroundColor: 'rgba(248,81,73,0.08)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointRadius: dd.length > 30 ? 0 : 3,
+          }],
+        },
+        options: {
+          ...chartDefaults,
+          scales: {
+            ...chartDefaults.scales,
+            y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '%' } },
+          },
+        },
+      });
+    }
+
+    // ── Strategy table ───────────────────────────────────────────────────────
+    function renderStrategy(byStrategy) {
+      const el = document.getElementById('strategyContent');
+      const entries = Object.entries(byStrategy);
+      if (entries.length === 0) { el.innerHTML = '<div class="empty-state">No trade data yet</div>'; return; }
+
+      let html = '<table class="strategy-table"><thead><tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>P&L</th></tr></thead><tbody>';
+      for (const [name, s] of entries.sort((a, b) => b[1].pnl - a[1].pnl)) {
+        const wr = s.trades > 0 ? (s.wins / s.trades * 100) : 0;
+        const pnlStr = s.pnl >= 0 ? `<span class="stat-value green" style="font-size:13px">+$${fmt(s.pnl)}</span>` : `<span class="stat-value red" style="font-size:13px">-$${fmt(Math.abs(s.pnl))}</span>`;
+        html += `<tr>
+          <td>${name}</td>
+          <td>${s.trades}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="win-bar-wrap" style="width:80px"><div class="win-bar" style="width:${wr}%"></div></div>
+              <span>${wr.toFixed(0)}%</span>
+            </div>
+          </td>
+          <td>${pnlStr}</td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    // ── Daily P&L heatmap ────────────────────────────────────────────────────
+    function renderHeatmap(dailyPnl) {
+      const el = document.getElementById('heatmapContent');
+      if (!dailyPnl || dailyPnl.length === 0) { el.innerHTML = '<div class="empty-state">No trade data yet</div>'; return; }
+
+      // Build a map of date → pnl
+      const pnlMap = {};
+      let minPnl = 0, maxPnl = 0;
+      for (const { date, pnl } of dailyPnl) {
+        pnlMap[date] = pnl;
+        if (pnl < minPnl) minPnl = pnl;
+        if (pnl > maxPnl) maxPnl = pnl;
+      }
+
+      // Find date range
+      const dates = Object.keys(pnlMap).sort();
+      if (dates.length === 0) return;
+      const start = new Date(dates[0]);
+      const end   = new Date(dates[dates.length - 1]);
+
+      // Align start to Monday
+      const startDay = start.getDay(); // 0=Sun, 1=Mon...
+      const offset = startDay === 0 ? 6 : startDay - 1;
+      start.setDate(start.getDate() - offset);
+
+      // Collect weeks
+      const weeks = [];
+      let week = [];
+      const cur = new Date(start);
+      while (cur <= end || week.length > 0) {
+        week.push(new Date(cur));
+        if (week.length === 7) { weeks.push(week); week = []; }
+        cur.setDate(cur.getDate() + 1);
+        if (cur > end && week.length > 0) { while (week.length < 7) { week.push(null); } weeks.push(week); break; }
+      }
+
+      function cellColor(pnl) {
+        if (pnl === undefined) return '#21262d';
+        if (pnl === 0) return '#21262d';
+        if (pnl > 0) {
+          const intensity = Math.min(pnl / (maxPnl || 1), 1);
+          return `rgba(63,185,80,${0.2 + intensity * 0.6})`;
+        } else {
+          const intensity = Math.min(Math.abs(pnl) / (Math.abs(minPnl) || 1), 1);
+          return `rgba(248,81,73,${0.2 + intensity * 0.6})`;
+        }
+      }
+
+      let html = '<div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th></th>';
+      for (const d of DAYS) html += `<th>${d}</th>`;
+      html += '</tr></thead><tbody>';
+
+      for (const wk of weeks) {
+        const label = wk[0] ? wk[0].toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
+        html += `<tr><td class="hm-label">${label}</td>`;
+        for (const d of wk) {
+          if (!d) { html += '<td style="background:#0d1117"></td>'; continue; }
+          const iso = d.toISOString().slice(0, 10);
+          const pnl = pnlMap[iso];
+          const tip = pnl !== undefined ? `${iso}: ${fmtUsd(pnl)}` : iso;
+          html += `<td style="background:${cellColor(pnl)}" title="${tip}"></td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table></div>';
+      el.innerHTML = html;
+    }
+
+    // ── Load data ────────────────────────────────────────────────────────────
+    async function load() {
+      try {
+        const [eqRes, stRes] = await Promise.all([
+          fetch('/api/analytics/equity').then(r => r.json()),
+          fetch('/api/analytics/stats').then(r => r.json()),
+        ]);
+
+        // Stats row
+        const s = stRes;
+        document.getElementById('statTotal').textContent  = s.totalTrades || '0';
+        const wr = document.getElementById('statWinRate');
+        wr.textContent = s.totalTrades ? (s.winRate * 100).toFixed(1) + '%' : '—';
+        wr.className = 'stat-value ' + (s.winRate >= 0.5 ? 'green' : s.winRate > 0 ? 'yellow' : '');
+
+        const pf = document.getElementById('statPF');
+        pf.textContent = s.totalTrades ? fmt(s.profitFactor) : '—';
+        pf.className = 'stat-value ' + (s.profitFactor >= 1.5 ? 'green' : s.profitFactor >= 1 ? 'yellow' : 'red');
+
+        document.getElementById('statAvgWin').textContent  = s.avgWin  ? '$' + fmt(s.avgWin)  : '—';
+        document.getElementById('statAvgLoss').textContent = s.avgLoss ? '$' + fmt(s.avgLoss) : '—';
+
+        const sh = document.getElementById('statSharpe');
+        sh.textContent = s.totalTrades ? fmt(s.sharpe, 2) : '—';
+        sh.className = 'stat-value ' + (s.sharpe >= 1 ? 'green' : s.sharpe >= 0 ? 'yellow' : 'red');
+
+        // Charts
+        if (eqRes.equity && eqRes.equity.length > 0) {
+          renderEquityCharts(eqRes.equity);
+        } else {
+          document.getElementById('equityChart').parentElement.innerHTML = '<div class="empty-state">Equity data builds up daily — check back after the bot has run for at least one full day</div>';
+          document.getElementById('drawdownChart').parentElement.innerHTML = '<div class="empty-state">Drawdown data builds up daily</div>';
+        }
+
+        renderStrategy(s.byStrategy || {});
+        renderHeatmap(s.dailyPnl || []);
+
+      } catch (e) {
+        console.error('Analytics load error:', e);
+      }
+    }
+
+    load();
+    setInterval(load, 30000); // Refresh every 30s
+  </script>
+</body>
+</html>

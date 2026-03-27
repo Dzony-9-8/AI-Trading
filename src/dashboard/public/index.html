@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Overview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .card-value { font-size: 28px; font-weight: bold; color: #f0f6fc; }
+    .card-value.green { color: #3fb950; }
+    .card-value.red { color: #f85149; }
+    .card-value.yellow { color: #d29922; }
+    .tier-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+    .tier-normal { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+    .tier-cautious { background: #d2992233; color: #d29922; border: 1px solid #d29922; }
+    .tier-critical { background: #da363333; color: #f85149; border: 1px solid #da3633; }
+    .tier-stopped { background: #f8514933; color: #f85149; border: 1px solid #f85149; }
+    .paper-badge { background: #238636; color: #3fb950; border: 1px solid #238636; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .section-title { font-size: 14px; color: #8b949e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 11px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid #21262d; }
+    tr:hover td { background: #161b22; }
+    .positive { color: #3fb950; }
+    .negative { color: #f85149; }
+    .loading { color: #8b949e; text-align: center; padding: 32px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+  <div class="container">
+    <div id="paper-banner" style="display:none; margin-bottom:16px;">
+      <span class="paper-badge">📄 PAPER MODE — No real money at risk</span>
+    </div>
+
+    <div class="grid" id="stats-grid">
+      <div class="card"><div class="card-label">Balance (USDT)</div><div class="card-value" id="balance">—</div></div>
+      <div class="card"><div class="card-label">Daily P&L</div><div class="card-value" id="daily-pnl">—</div></div>
+      <div class="card"><div class="card-label">Drawdown</div><div class="card-value" id="drawdown">—</div></div>
+      <div class="card"><div class="card-label">Open Positions</div><div class="card-value" id="open-pos">—</div></div>
+      <div class="card"><div class="card-label">Survival Tier</div><div id="tier-cell" style="margin-top:8px;">—</div></div>
+      <div class="card"><div class="card-label">Today's Trades</div><div class="card-value" id="today-trades">—</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">Open Positions</div>
+      <table>
+        <thead><tr><th>Symbol</th><th>Strategy</th><th>Entry</th><th>Current</th><th>Size</th><th>P&L</th><th>Stop Loss</th></tr></thead>
+        <tbody id="positions-body"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let wsConnected = false;
+    let pollInterval = null;
+
+    function applyMetrics(data) {
+      document.getElementById('balance').textContent = '$' + data.balance.toFixed(2);
+      const pnl = data.dailyPnLPct;
+      const pnlEl = document.getElementById('daily-pnl');
+      pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + '%';
+      pnlEl.className = 'card-value ' + (pnl >= 0 ? 'green' : 'red');
+      document.getElementById('drawdown').textContent = '-' + data.drawdownFromPeakPct.toFixed(2) + '%';
+      document.getElementById('open-pos').textContent = data.openPositions;
+      const tierEl = document.getElementById('tier-cell');
+      tierEl.innerHTML = `<span class="tier-badge tier-${data.tier}">${data.tier}</span>`;
+      if (data.paper) document.getElementById('paper-banner').style.display = 'block';
+    }
+
+    function applyPositions(data) {
+      const tbody = document.getElementById('positions-body');
+      if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="loading">No open positions</td></tr>'; return; }
+      tbody.innerHTML = data.map(p => `
+        <tr>
+          <td>${p.symbol}</td>
+          <td>${p.strategy}</td>
+          <td>$${p.entry_price.toFixed(2)}</td>
+          <td>$${(p.current_price ?? p.entry_price).toFixed(2)}</td>
+          <td>${p.size.toFixed(4)}</td>
+          <td class="${p.pnl >= 0 ? 'positive' : 'negative'}">${p.pnl >= 0 ? '+' : ''}$${p.pnl.toFixed(2)} (${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(2)}%)</td>
+          <td>${p.stop_loss ? '$' + p.stop_loss.toFixed(2) : '—'}</td>
+        </tr>`).join('');
+    }
+
+    async function fetchAll() {
+      const [metrics, positions] = await Promise.all([
+        fetch('/api/metrics').then(r => r.json()),
+        fetch('/api/positions').then(r => r.json()),
+      ]);
+      applyMetrics(metrics);
+      applyPositions(positions);
+      if (!metrics.todayTrades === undefined) return; // guard
+      document.getElementById('today-trades').textContent = metrics.todayTrades ?? '—';
+    }
+
+    function startPolling() {
+      if (pollInterval) return;
+      fetchAll();
+      pollInterval = setInterval(fetchAll, 5000);
+    }
+
+    function stopPolling() {
+      if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    }
+
+    // ── WebSocket ──────────────────────────────────────────────────────────────
+    function connectWs() {
+      const ws = new WebSocket(`ws://${location.host}/ws`);
+
+      ws.onopen = () => {
+        wsConnected = true;
+        stopPolling();   // WS is live — no need to poll
+        fetchAll();      // initial load
+      };
+
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'metrics')    { applyMetrics(msg.data); fetchAll(); } // todayTrades not in WS payload
+          if (msg.type === 'positions')  { applyPositions(msg.data); }
+          if (msg.type === 'tier_change') {
+            const tierEl = document.getElementById('tier-cell');
+            tierEl.innerHTML = `<span class="tier-badge tier-${msg.data.to}">${msg.data.to}</span>`;
+          }
+          if (msg.type === 'trade')      { fetchAll(); } // trade event — refresh everything
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        wsConnected = false;
+        startPolling(); // fallback to polling until WS reconnects
+        setTimeout(connectWs, 5000); // attempt reconnect
+      };
+
+      ws.onerror = () => { ws.close(); };
+    }
+
+    // Start — try WebSocket first, polling is the fallback
+    connectWs();
+    // Also start polling immediately so data appears fast on first load
+    fetchAll();
+  </script>
+</body>
+</html>

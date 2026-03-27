@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Logs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; flex-shrink: 0; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .toolbar { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 24px; display: flex; gap: 12px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+    .toolbar select, .toolbar input { background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; }
+    .btn { padding: 5px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid; }
+    .btn-default { background: #21262d; border-color: #30363d; color: #c9d1d9; }
+    .btn-default:hover { background: #30363d; }
+    .btn-danger { background: #da363333; border-color: #da3633; color: #f85149; }
+    .btn-danger:hover { background: #f8514933; }
+    .btn-pause { background: #d2992233; border-color: #d29922; color: #d29922; }
+    .btn-resume { background: #23863633; border-color: #238636; color: #3fb950; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot-live { background: #3fb950; box-shadow: 0 0 6px #3fb950; animation: pulse 2s infinite; }
+    .dot-paused { background: #d29922; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    #log-container { flex: 1; overflow-y: auto; padding: 12px 24px; font-size: 12px; line-height: 1.6; }
+    .log-line { display: flex; gap: 12px; padding: 2px 0; border-bottom: 1px solid #0d1117; }
+    .log-line:hover { background: #161b22; }
+    .log-time { color: #484f58; white-space: nowrap; flex-shrink: 0; }
+    .log-level { flex-shrink: 0; width: 40px; font-weight: bold; }
+    .level-debug { color: #58a6ff; }
+    .level-info  { color: #3fb950; }
+    .level-warn  { color: #d29922; }
+    .level-error { color: #f85149; }
+    .log-msg { color: #c9d1d9; word-break: break-word; }
+    .log-data { color: #484f58; }
+    .empty { color: #8b949e; text-align: center; padding: 48px; }
+    #token-modal { display: none; position: fixed; inset: 0; background: #00000088; align-items: center; justify-content: center; }
+    #token-modal.show { display: flex; }
+    .modal-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 24px; width: 400px; }
+    .modal-box h3 { margin-bottom: 12px; color: #f0f6fc; }
+    .modal-box input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 8px; border-radius: 6px; font-family: inherit; font-size: 13px; margin-bottom: 12px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+  <div class="toolbar">
+    <span><span class="status-dot dot-live" id="status-dot"></span><span id="status-text">Live</span></span>
+    <select id="level-filter">
+      <option value="">All Levels</option>
+      <option value="debug">Debug</option>
+      <option value="info" selected>Info</option>
+      <option value="warn">Warn</option>
+      <option value="error">Error</option>
+    </select>
+    <input id="search" type="text" placeholder="Filter messages..." style="width:200px">
+    <button class="btn btn-default" onclick="clearDisplay()">Clear Display</button>
+    <button class="btn btn-pause" id="pause-btn" onclick="pauseBot()">Pause Bot</button>
+    <button class="btn btn-resume" id="resume-btn" onclick="resumeBot()" style="display:none">Resume Bot</button>
+    <button class="btn btn-danger" onclick="showStopModal()">⚠ STOP BOT</button>
+    <label style="margin-left:auto; font-size:12px; color:#8b949e;">
+      <input type="checkbox" id="auto-scroll" checked> Auto-scroll
+    </label>
+  </div>
+  <div id="log-container"><div class="empty">Waiting for logs...</div></div>
+
+  <!-- STOP confirmation modal -->
+  <div id="token-modal">
+    <div class="modal-box">
+      <h3>⚠ Confirm Emergency Stop</h3>
+      <p style="font-size:13px;color:#8b949e;margin-bottom:12px;">This will create a STOP file and trigger emergency liquidation of all positions. Enter your dashboard token to confirm.</p>
+      <input type="password" id="token-input" placeholder="Dashboard token...">
+      <div class="modal-actions">
+        <button class="btn btn-default" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmStop()">Confirm STOP</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastSince = null;
+    let allLogs = [];
+    let paused = false;
+
+    async function fetchLogs() {
+      const url = lastSince ? `/api/logs?since=${encodeURIComponent(lastSince)}` : '/api/logs';
+      const newLogs = await fetch(url).then(r => r.json()).catch(() => []);
+      if (!Array.isArray(newLogs) || newLogs.length === 0) return;
+      lastSince = newLogs[newLogs.length - 1].timestamp;
+      allLogs.push(...newLogs);
+      if (allLogs.length > 1000) allLogs = allLogs.slice(-1000);
+      render();
+    }
+
+    function render() {
+      const level = document.getElementById('level-filter').value;
+      const search = document.getElementById('search').value.toLowerCase();
+      const filtered = allLogs.filter(l =>
+        (!level || l.level === level) &&
+        (!search || l.msg.toLowerCase().includes(search) || JSON.stringify(l.data || '').toLowerCase().includes(search))
+      );
+
+      const container = document.getElementById('log-container');
+      if (filtered.length === 0) { container.innerHTML = '<div class="empty">No matching log entries</div>'; return; }
+
+      container.innerHTML = filtered.map(l => `
+        <div class="log-line">
+          <span class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</span>
+          <span class="log-level level-${l.level}">${l.level.toUpperCase()}</span>
+          <span class="log-msg">${escHtml(l.msg)}</span>
+          ${l.data ? `<span class="log-data">${escHtml(fmtData(l.data))}</span>` : ''}
+        </div>`).join('');
+
+      if (document.getElementById('auto-scroll').checked) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    function clearDisplay() { allLogs = []; lastSince = null; document.getElementById('log-container').innerHTML = '<div class="empty">Display cleared</div>'; }
+    function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmtData(d) {
+      if (!d || typeof d !== 'object') return String(d || '');
+      return Object.entries(d).map(([k,v]) => {
+        if (v === null || v === undefined) return null;
+        if (typeof v === 'boolean') return `${k}=${v}`;
+        if (typeof v === 'number') return `${k}=${Number.isInteger(v) ? v : parseFloat(v.toFixed(4))}`;
+        if (Array.isArray(v)) return `${k}=[${v.join(',')}]`;
+        return `${k}=${v}`;
+      }).filter(Boolean).join('  ');
+    }
+
+    async function checkStatus() {
+      const s = await fetch('/api/control/status').then(r => r.json()).catch(() => ({}));
+      paused = s.paused;
+      document.getElementById('pause-btn').style.display = paused ? 'none' : '';
+      document.getElementById('resume-btn').style.display = paused ? '' : 'none';
+      const dot = document.getElementById('status-dot');
+      const txt = document.getElementById('status-text');
+      if (s.stopFileExists) { dot.className = 'status-dot'; dot.style.background='#f85149'; txt.textContent = 'STOPPED'; }
+      else if (paused) { dot.className = 'status-dot dot-paused'; txt.textContent = 'Paused'; }
+      else { dot.className = 'status-dot dot-live'; txt.textContent = 'Live'; }
+    }
+
+    let _token = '';
+    function showStopModal() { document.getElementById('token-modal').classList.add('show'); document.getElementById('token-input').focus(); }
+    function hideModal() { document.getElementById('token-modal').classList.remove('show'); document.getElementById('token-input').value = ''; }
+
+    async function confirmStop() {
+      const token = document.getElementById('token-input').value.trim();
+      const res = await fetch('/api/control', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({action:'stop'}) });
+      if (res.ok) { hideModal(); alert('STOP file created. Bot will halt within 30 seconds.'); }
+      else { const err = await res.json(); alert('Error: ' + err.error); }
+    }
+
+    async function pauseBot() {
+      const token = prompt('Enter dashboard token:');
+      if (!token) return;
+      const res = await fetch('/api/control', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({action:'pause',minutes:60}) });
+      if (res.ok) checkStatus(); else alert('Invalid token');
+    }
+
+    async function resumeBot() {
+      const token = prompt('Enter dashboard token:');
+      if (!token) return;
+      const res = await fetch('/api/control', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({action:'resume'}) });
+      if (res.ok) checkStatus(); else alert('Invalid token');
+    }
+
+    document.getElementById('level-filter').addEventListener('change', render);
+    document.getElementById('search').addEventListener('input', render);
+
+    fetchLogs();
+    setInterval(fetchLogs, 3000);
+    setInterval(checkStatus, 5000);
+    checkStatus();
+  </script>
+</body>
+</html>

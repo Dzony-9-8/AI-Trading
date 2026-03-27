@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Chart</title>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Nav ─────────────────────────────────────────────────────────────── */
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 24px; display: flex; gap: 24px; align-items: center; flex-shrink: 0; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav a.active { color: #f0f6fc; font-weight: bold; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+
+    /* ── Toolbar ─────────────────────────────────────────────────────────── */
+    .toolbar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .toolbar select {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 140px;
+    }
+    .toolbar select:focus { outline: none; border-color: #58a6ff; }
+
+    .tf-group { display: flex; gap: 2px; }
+    .tf-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tf-btn:hover { background: #30363d; color: #c9d1d9; }
+    .tf-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+
+    .ohlcv-display {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .ohlcv-display span { display: flex; gap: 4px; }
+    .ohlcv-display .lbl { color: #484f58; }
+    .ohlcv-display .val-o { color: #c9d1d9; }
+    .ohlcv-display .val-h { color: #3fb950; }
+    .ohlcv-display .val-l { color: #f85149; }
+    .ohlcv-display .val-c { color: #58a6ff; }
+    .ohlcv-display .val-v { color: #8b949e; }
+    .price-change { font-weight: bold; }
+    .price-change.up { color: #3fb950; }
+    .price-change.down { color: #f85149; }
+
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #3fb950; display: inline-block; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── Chart area ──────────────────────────────────────────────────────── */
+    .chart-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    #chart-main {
+      flex: 1;
+      min-height: 0;
+    }
+    .chart-divider {
+      height: 4px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      border-bottom: 1px solid #30363d;
+      cursor: ns-resize;
+      flex-shrink: 0;
+    }
+    #chart-volume {
+      height: 60px;
+      flex-shrink: 0;
+    }
+    #chart-rsi {
+      height: 80px;
+      flex-shrink: 0;
+    }
+    #chart-macd {
+      height: 80px;
+      flex-shrink: 0;
+    }
+
+    /* ── Legend overlay ──────────────────────────────────────────────────── */
+    #legend {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      z-index: 10;
+      pointer-events: none;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    #legend .sym { font-size: 16px; font-weight: bold; color: #f0f6fc; }
+    #legend .tf-tag { font-size: 11px; color: #58a6ff; margin-left: 6px; background: #1f6feb22; padding: 1px 6px; border-radius: 4px; border: 1px solid #1f6feb44; }
+    #legend .price-line { font-size: 20px; font-weight: bold; color: #f0f6fc; margin: 2px 0; }
+    #legend .bb-info { font-size: 11px; color: #8b949e; }
+    #legend .sma-info  { font-size: 11px; color: #8b949e; }
+    #legend .rsi-info  { font-size: 11px; color: #8b949e; }
+    #legend .macd-info { font-size: 11px; color: #8b949e; }
+    #no-data {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #484f58;
+      font-size: 14px;
+      text-align: center;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart" class="active">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+
+  <div class="toolbar">
+    <span class="status-dot" id="status-dot"></span>
+    <select id="symbol-select"></select>
+
+    <div class="tf-group">
+      <button class="tf-btn" data-tf="1m">1m</button>
+      <button class="tf-btn" data-tf="5m">5m</button>
+      <button class="tf-btn" data-tf="15m">15m</button>
+      <button class="tf-btn active" data-tf="1h">1h</button>
+      <button class="tf-btn" data-tf="4h">4h</button>
+      <button class="tf-btn" data-tf="1d">1d</button>
+    </div>
+
+    <div class="ohlcv-display" id="ohlcv-display">
+      <span><span class="lbl">O</span><span class="val-o" id="v-o">—</span></span>
+      <span><span class="lbl">H</span><span class="val-h" id="v-h">—</span></span>
+      <span><span class="lbl">L</span><span class="val-l" id="v-l">—</span></span>
+      <span><span class="lbl">C</span><span class="val-c" id="v-c">—</span></span>
+      <span><span class="lbl">V</span><span class="val-v" id="v-v">—</span></span>
+      <span class="price-change" id="pct-chg"></span>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <div id="legend">
+      <div><span class="sym" id="leg-sym">—</span><span class="tf-tag" id="leg-tf">1h</span></div>
+      <div class="price-line" id="leg-price">—</div>
+      <div class="bb-info" id="leg-bb"></div>
+      <div class="sma-info" id="leg-sma"></div>
+      <div class="rsi-info" id="leg-rsi"></div>
+      <div class="macd-info" id="leg-macd"></div>
+    </div>
+    <div id="no-data">No candle data yet.<br>The bot collects candles as it runs.</div>
+    <div id="chart-main"></div>
+    <div class="chart-divider"></div>
+    <div id="chart-volume"></div>
+    <div class="chart-divider"></div>
+    <div id="chart-rsi"></div>
+    <div class="chart-divider"></div>
+    <div id="chart-macd"></div>
+  </div>
+
+  <script>
+  (async () => {
+    // ── State ──────────────────────────────────────────────────────────────
+    let currentSymbol = '';
+    let currentTf = '1h';
+    let candleSeries, volumeSeries, bbUpperSeries, bbMidSeries, bbLowerSeries;
+    let mainChart, volChart;
+    let rsiChart, macdChart;
+    let rsiSeries, macdHistSeries, macdLineSeries, macdSignalSeries;
+    let sma20Series, sma50Series, sma200Series;
+    let refreshTimer = null;
+
+    // ── Init charts ────────────────────────────────────────────────────────
+    function initCharts() {
+      const mainEl   = document.getElementById('chart-main');
+      const volEl    = document.getElementById('chart-volume');
+      const rsiEl    = document.getElementById('chart-rsi');
+      const macdEl   = document.getElementById('chart-macd');
+      const mainH    = mainEl.clientHeight || 500;
+      const volH     = volEl.clientHeight  || 60;
+
+      const commonOpts = {
+        layout: { background: { color: '#0d1117' }, textColor: '#8b949e' },
+        grid:   { vertLines: { color: '#21262d' }, horzLines: { color: '#21262d' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false },
+        rightPriceScale: { borderColor: '#30363d' },
+        handleScroll: true,
+        handleScale: true,
+      };
+
+      // Destroy old charts if reinitialising
+      if (mainChart) { mainChart.remove(); mainChart = null; }
+      if (volChart)  { volChart.remove();  volChart  = null; }
+      if (rsiChart)  { rsiChart.remove();  rsiChart  = null; }
+      if (macdChart) { macdChart.remove(); macdChart = null; }
+
+      mainChart = LightweightCharts.createChart(mainEl, { ...commonOpts, height: mainH });
+      volChart  = LightweightCharts.createChart(volEl,  {
+        ...commonOpts,
+        height: volH,
+        rightPriceScale: { visible: false },
+        leftPriceScale:  { visible: false },
+        timeScale: { visible: false },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      });
+
+      rsiChart = LightweightCharts.createChart(rsiEl, {
+        ...commonOpts,
+        height: 80,
+        rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.1, bottom: 0.1 } },
+        timeScale: { visible: false },
+      });
+
+      macdChart = LightweightCharts.createChart(macdEl, {
+        ...commonOpts,
+        height: 80,
+        rightPriceScale: { borderColor: '#30363d', scaleMargins: { top: 0.1, bottom: 0.1 } },
+        timeScale: { visible: false },
+      });
+
+      // Candlestick series
+      candleSeries = mainChart.addCandlestickSeries({
+        upColor:          '#3fb950',
+        downColor:        '#f85149',
+        borderUpColor:    '#3fb950',
+        borderDownColor:  '#f85149',
+        wickUpColor:      '#3fb950',
+        wickDownColor:    '#f85149',
+      });
+
+      // Bollinger Bands (three line series)
+      bbUpperSeries = mainChart.addLineSeries({ color: '#58a6ff44', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      bbMidSeries   = mainChart.addLineSeries({ color: '#58a6ff88', lineWidth: 1, lineStyle: 1, priceLineVisible: false, lastValueVisible: false });
+      bbLowerSeries = mainChart.addLineSeries({ color: '#58a6ff44', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+
+      // SMA lines on main chart
+      sma20Series  = mainChart.addLineSeries({ color: '#f0883e88', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      sma50Series  = mainChart.addLineSeries({ color: '#56d36488', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      sma200Series = mainChart.addLineSeries({ color: '#d4a01788', lineWidth: 1, lineStyle: 1, priceLineVisible: false, lastValueVisible: false });
+
+      // Volume histogram
+      volumeSeries = volChart.addHistogramSeries({
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+      });
+      volChart.priceScale('').applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } });
+
+      // RSI series
+      rsiSeries = rsiChart.addLineSeries({ color: '#d2a8ff', lineWidth: 1, priceLineVisible: false, lastValueVisible: true });
+      rsiSeries.createPriceLine({ price: 70, color: '#f8514966', lineWidth: 1, lineStyle: 2 });
+      rsiSeries.createPriceLine({ price: 30, color: '#3fb95066', lineWidth: 1, lineStyle: 2 });
+
+      // MACD series
+      macdHistSeries   = macdChart.addHistogramSeries({ priceScaleId: 'right', priceLineVisible: false, lastValueVisible: false });
+      macdLineSeries   = macdChart.addLineSeries({ color: '#58a6ff', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+      macdSignalSeries = macdChart.addLineSeries({ color: '#f0883e', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+
+      // Sync timescales across all 4 charts
+      const allCharts = [mainChart, volChart, rsiChart, macdChart];
+      allCharts.forEach(src => {
+        src.timeScale().subscribeVisibleLogicalRangeChange(range => {
+          if (!range) return;
+          allCharts.forEach(dst => {
+            if (dst !== src) dst.timeScale().setVisibleLogicalRange(range);
+          });
+        });
+      });
+
+      // Crosshair data tooltip
+      mainChart.subscribeCrosshairMove(param => {
+        if (!param || !param.time || !param.seriesData) return;
+        const bar = param.seriesData.get(candleSeries);
+        if (!bar) return;
+        const fmt = v => v.toFixed(currentSymbol.includes('BTC') ? 0 : 2);
+        document.getElementById('v-o').textContent = fmt(bar.open);
+        document.getElementById('v-h').textContent = fmt(bar.high);
+        document.getElementById('v-l').textContent = fmt(bar.low);
+        document.getElementById('v-c').textContent = fmt(bar.close);
+        const volBar = param.seriesData.get(volumeSeries);
+        if (volBar) document.getElementById('v-v').textContent = fmtVol(volBar.value);
+        const chg = ((bar.close - bar.open) / bar.open) * 100;
+        const chgEl = document.getElementById('pct-chg');
+        chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+        chgEl.className = 'price-change ' + (chg >= 0 ? 'up' : 'down');
+      });
+    }
+
+    // ── Bollinger Bands ────────────────────────────────────────────────────
+    function computeBB(candles, period = 20, mult = 2) {
+      const upper = [], mid = [], lower = [];
+      for (let i = period - 1; i < candles.length; i++) {
+        const slice = candles.slice(i - period + 1, i + 1).map(c => c.close);
+        const mean  = slice.reduce((a, b) => a + b, 0) / period;
+        const std   = Math.sqrt(slice.map(v => (v - mean) ** 2).reduce((a, b) => a + b, 0) / period);
+        const t = candles[i].time;
+        upper.push({ time: t, value: mean + mult * std });
+        mid.push(  { time: t, value: mean });
+        lower.push({ time: t, value: mean - mult * std });
+      }
+      return { upper, mid, lower };
+    }
+
+    // ── Simple Moving Average ──────────────────────────────────────────────
+    function computeSMA(candles, period) {
+      const result = [];
+      for (let i = period - 1; i < candles.length; i++) {
+        let sum = 0;
+        for (let j = i - period + 1; j <= i; j++) sum += candles[j].close;
+        result.push({ time: candles[i].time, value: sum / period });
+      }
+      return result;
+    }
+
+    // ── EMA helper for MACD ────────────────────────────────────────────────
+    function computeEMA(values, period) {
+      if (values.length < period) return values.map(() => null);
+      const k = 2 / (period + 1);
+      const result = Array(period - 1).fill(null);
+      const first = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+      result.push(first);
+      for (let i = period; i < values.length; i++) {
+        result.push(values[i] * k + result[result.length - 1] * (1 - k));
+      }
+      return result;
+    }
+
+    // ── RSI (14) using Wilder's smoothing ──────────────────────────────────
+    function computeRSI(candles, period = 14) {
+      if (candles.length < period + 1) return [];
+      const closes = candles.map(c => c.close);
+      let avgGain = 0, avgLoss = 0;
+      for (let i = 1; i <= period; i++) {
+        const d = closes[i] - closes[i - 1];
+        if (d > 0) avgGain += d; else avgLoss -= d;
+      }
+      avgGain /= period; avgLoss /= period;
+      const result = [];
+      for (let i = period + 1; i < candles.length; i++) {
+        const d = closes[i] - closes[i - 1];
+        avgGain = (avgGain * (period - 1) + Math.max(d, 0)) / period;
+        avgLoss = (avgLoss * (period - 1) + Math.max(-d, 0)) / period;
+        const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+        result.push({ time: candles[i].time, value: 100 - 100 / (1 + rs) });
+      }
+      return result;
+    }
+
+    // ── MACD(12,26,9) ──────────────────────────────────────────────────────
+    function computeMACD(candles, fast = 12, slow = 26, signal = 9) {
+      const closes = candles.map(c => c.close);
+      const ema12 = computeEMA(closes, fast);
+      const ema26 = computeEMA(closes, slow);
+      const macdLine = [], macdTimes = [];
+      for (let i = 0; i < closes.length; i++) {
+        if (ema12[i] !== null && ema26[i] !== null) {
+          macdLine.push(ema12[i] - ema26[i]);
+          macdTimes.push(candles[i].time);
+        }
+      }
+      if (macdLine.length < signal) return { macd: [], signal: [], histogram: [] };
+      const sigEMA = computeEMA(macdLine, signal);
+      const macdOut = [], sigOut = [], histOut = [];
+      for (let i = 0; i < macdLine.length; i++) {
+        if (sigEMA[i] !== null) {
+          const m = macdLine[i], s = sigEMA[i], h = m - s;
+          macdOut.push({ time: macdTimes[i], value: m });
+          sigOut.push({ time: macdTimes[i], value: s });
+          histOut.push({ time: macdTimes[i], value: h, color: h >= 0 ? '#3fb95099' : '#f8514999' });
+        }
+      }
+      return { macd: macdOut, signal: sigOut, histogram: histOut };
+    }
+
+    function fmtVol(v) {
+      if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+      if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+      if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+      return v.toFixed(0);
+    }
+
+    function fmtPrice(v) {
+      if (v >= 1000) return v.toFixed(0);
+      if (v >= 10)   return v.toFixed(2);
+      return v.toFixed(4);
+    }
+
+    // ── Load data ──────────────────────────────────────────────────────────
+    async function loadChart(symbol, tf) {
+      try {
+        const res  = await fetch(`/api/candles?symbol=${encodeURIComponent(symbol)}&timeframe=${tf}&limit=300`);
+        const data = await res.json();
+
+        const noDataEl = document.getElementById('no-data');
+
+        if (!data.candles || data.candles.length < 2) {
+          noDataEl.style.display = 'block';
+          candleSeries.setData([]);
+          volumeSeries.setData([]);
+          bbUpperSeries.setData([]);
+          bbMidSeries.setData([]);
+          bbLowerSeries.setData([]);
+          sma20Series.setData([]);
+          sma50Series.setData([]);
+          sma200Series.setData([]);
+          rsiSeries.setData([]);
+          macdHistSeries.setData([]);
+          macdLineSeries.setData([]);
+          macdSignalSeries.setData([]);
+          return;
+        }
+        noDataEl.style.display = 'none';
+
+        candleSeries.setData(data.candles);
+
+        // Color-coded volume bars using candle direction (Webull-style green/red)
+        const volumeData = data.candles.map((c, i) => ({
+          time: c.time,
+          value: data.volume[i]?.value ?? 0,
+          color: c.close >= c.open ? 'rgba(63,185,80,0.5)' : 'rgba(248,81,73,0.5)',
+        }));
+        volumeSeries.setData(volumeData);
+
+        // Bollinger Bands overlay
+        const bb = computeBB(data.candles);
+        bbUpperSeries.setData(bb.upper);
+        bbMidSeries.setData(bb.mid);
+        bbLowerSeries.setData(bb.lower);
+
+        // SMAs — use server-computed arrays when available (more accurate with full history),
+        // otherwise fall back to client-side computation from the visible window
+        const sma20Data  = computeSMA(data.candles, 20);
+        const sma50Data  = (data.sma50 && data.sma50.length > 0) ? data.sma50 : computeSMA(data.candles, 50);
+        const sma200Data = (data.sma200 && data.sma200.length > 0) ? data.sma200 : computeSMA(data.candles, 200);
+        sma20Series.setData(sma20Data);
+        sma50Series.setData(sma50Data);
+        sma200Series.setData(sma200Data);
+
+        // RSI
+        const rsiData = computeRSI(data.candles);
+        rsiSeries.setData(rsiData);
+
+        // MACD
+        const macdData = computeMACD(data.candles);
+        macdHistSeries.setData(macdData.histogram);
+        macdLineSeries.setData(macdData.macd);
+        macdSignalSeries.setData(macdData.signal);
+
+        // Load trade markers
+        const mRes    = await fetch(`/api/candles/markers?symbol=${encodeURIComponent(symbol)}`);
+        const mData   = await mRes.json();
+        if (mData.markers && mData.markers.length > 0) {
+          candleSeries.setMarkers(mData.markers);
+        } else {
+          candleSeries.setMarkers([]);
+        }
+
+        // Update legend
+        const last = data.candles[data.candles.length - 1];
+        document.getElementById('leg-sym').textContent   = symbol;
+        document.getElementById('leg-tf').textContent    = tf;
+        document.getElementById('leg-price').textContent = fmtPrice(last.close);
+
+        // BB legend
+        if (bb.upper.length > 0) {
+          const lastBB = { upper: bb.upper[bb.upper.length - 1].value, mid: bb.mid[bb.mid.length - 1].value, lower: bb.lower[bb.lower.length - 1].value };
+          document.getElementById('leg-bb').textContent =
+            `BB(20,2)  \u25b2 ${fmtPrice(lastBB.upper)}  \u2014 ${fmtPrice(lastBB.mid)}  \u25bc ${fmtPrice(lastBB.lower)}`;
+        }
+
+        // SMA legend
+        const lastSMA50  = sma50Data.length  ? sma50Data[sma50Data.length - 1].value   : null;
+        const lastSMA200 = sma200Data.length ? sma200Data[sma200Data.length - 1].value : null;
+        const lastRSI    = rsiData.length    ? rsiData[rsiData.length - 1].value       : null;
+        const lastMACD   = macdData.macd.length   ? macdData.macd[macdData.macd.length - 1].value     : null;
+        const lastSig    = macdData.signal.length ? macdData.signal[macdData.signal.length - 1].value : null;
+
+        if (lastSMA50 && lastSMA200) {
+          document.getElementById('leg-sma').innerHTML =
+            `<span style="color:#56d364">SMA50 ${fmtPrice(lastSMA50)}</span>  ` +
+            `<span style="color:#d4a017">SMA200 ${fmtPrice(lastSMA200)}</span>`;
+        }
+        if (lastRSI !== null) {
+          const rsiColor = lastRSI > 70 ? '#f85149' : lastRSI < 30 ? '#3fb950' : '#d2a8ff';
+          document.getElementById('leg-rsi').innerHTML =
+            `<span style="color:${rsiColor}">RSI(14) ${lastRSI.toFixed(1)}</span>`;
+        }
+        if (lastMACD !== null && lastSig !== null) {
+          const hist = lastMACD - lastSig;
+          document.getElementById('leg-macd').innerHTML =
+            `<span style="color:#58a6ff">MACD ${lastMACD.toFixed(4)}</span>  ` +
+            `<span style="color:#f0883e">Signal ${lastSig.toFixed(4)}</span>  ` +
+            `<span style="color:${hist >= 0 ? '#3fb950' : '#f85149'}">Hist ${hist >= 0 ? '+' : ''}${hist.toFixed(4)}</span>`;
+        }
+
+        // Toolbar OHLCV defaults to last bar
+        document.getElementById('v-o').textContent = fmtPrice(last.open);
+        document.getElementById('v-h').textContent = fmtPrice(last.high);
+        document.getElementById('v-l').textContent = fmtPrice(last.low);
+        document.getElementById('v-c').textContent = fmtPrice(last.close);
+        if (data.volume.length > 0) {
+          document.getElementById('v-v').textContent = fmtVol(data.volume[data.volume.length - 1].value);
+        }
+        if (data.candles.length >= 2) {
+          const prev = data.candles[data.candles.length - 2];
+          const chg  = ((last.close - prev.close) / prev.close) * 100;
+          const chgEl = document.getElementById('pct-chg');
+          chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+          chgEl.className = 'price-change ' + (chg >= 0 ? 'up' : 'down');
+        }
+
+        // Fit view
+        mainChart.timeScale().fitContent();
+
+      } catch (e) {
+        console.error('Chart load error:', e);
+      }
+    }
+
+    // ── Live price update (fast poll, no full reload) ─────────────────────
+    async function liveUpdate() {
+      try {
+        const res  = await fetch(`/api/candles?symbol=${encodeURIComponent(currentSymbol)}&timeframe=${currentTf}&limit=2`);
+        const data = await res.json();
+        if (!data.candles || data.candles.length < 1) return;
+
+        const last = data.candles[data.candles.length - 1];
+        candleSeries.update(last);
+        if (data.volume.length > 0) volumeSeries.update(data.volume[data.volume.length - 1]);
+
+        // Update legend price
+        document.getElementById('leg-price').textContent = fmtPrice(last.close);
+      } catch { /* silent */ }
+    }
+
+    // ── Populate symbol selector ───────────────────────────────────────────
+    async function loadSymbols() {
+      const res  = await fetch('/api/candles/symbols');
+      const data = await res.json();
+      const sel  = document.getElementById('symbol-select');
+      sel.innerHTML = '';
+      for (const sym of data.symbols) {
+        const opt = document.createElement('option');
+        opt.value = sym;
+        opt.textContent = sym;
+        sel.appendChild(opt);
+      }
+      return data.symbols[0] ?? '';
+    }
+
+    // ── Handle resize ──────────────────────────────────────────────────────
+    function handleResize() {
+      if (mainChart) mainChart.applyOptions({ width: document.getElementById('chart-main').clientWidth });
+      if (volChart)  volChart.applyOptions({ width: document.getElementById('chart-volume').clientWidth, height: 60 });
+      if (rsiChart)  rsiChart.applyOptions({ width: document.getElementById('chart-rsi').clientWidth });
+      if (macdChart) macdChart.applyOptions({ width: document.getElementById('chart-macd').clientWidth });
+    }
+
+    // ── Startup ────────────────────────────────────────────────────────────
+    initCharts();
+
+    currentSymbol = await loadSymbols();
+    document.getElementById('symbol-select').value = currentSymbol;
+
+    await loadChart(currentSymbol, currentTf);
+
+    // ── Symbol change ──────────────────────────────────────────────────────
+    document.getElementById('symbol-select').addEventListener('change', async e => {
+      currentSymbol = e.target.value;
+      await loadChart(currentSymbol, currentTf);
+    });
+
+    // ── Timeframe buttons ──────────────────────────────────────────────────
+    document.querySelectorAll('.tf-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTf = btn.dataset.tf;
+        await loadChart(currentSymbol, currentTf);
+      });
+    });
+
+    // ── WebSocket live updates ─────────────────────────────────────────────
+    let wsActive = false;
+    function connectChartWs() {
+      const ws = new WebSocket(`ws://${location.host}/ws`);
+      ws.onopen = () => { wsActive = true; };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          // New candle from bot — update chart if it matches current view
+          if (msg.type === 'candle') {
+            const { symbol, timeframe } = msg.data;
+            if (symbol === currentSymbol && timeframe === currentTf) {
+              liveUpdate(); // refresh last candle price
+            }
+          }
+        } catch {}
+      };
+      ws.onclose = () => { wsActive = false; setTimeout(connectChartWs, 5000); };
+      ws.onerror = () => { ws.close(); };
+    }
+    connectChartWs();
+
+    // ── Live refresh every 5s (fallback / fills gaps when WS misses candles)
+    setInterval(liveUpdate, 5000);
+
+    // ── Full reload every 60s (picks up new candles) ───────────────────────
+    setInterval(() => loadChart(currentSymbol, currentTf), 60000);
+
+    // ── Resize handler ─────────────────────────────────────────────────────
+    window.addEventListener('resize', handleResize);
+    new ResizeObserver(handleResize).observe(document.getElementById('chart-main'));
+
+  })();
+  </script>
+</body>
+</html>

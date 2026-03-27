@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Risk</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .card-title { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+    .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #8b949e; }
+    .stat-value { color: #f0f6fc; font-weight: bold; }
+    .stat-value.green { color: #3fb950; }
+    .stat-value.red { color: #f85149; }
+    .stat-value.yellow { color: #d29922; }
+    .cb-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
+    .cb-item:last-child { border-bottom: none; }
+    .cb-name { color: #c9d1d9; }
+    .cb-status { font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+    .cb-ok { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+    .cb-triggered { background: #da363333; color: #f85149; border: 1px solid #da3633; }
+    svg text { font-family: 'Courier New', monospace; }
+    .loading { color: #8b949e; text-align: center; padding: 32px; }
+    @media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+  <div class="container">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Risk Metrics</div>
+        <div id="risk-stats"><div class="loading">Loading...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Circuit Breakers</div>
+        <div id="circuit-breakers">
+          <div class="cb-item"><span class="cb-name">Daily Loss &gt; 5%</span><span class="cb-status cb-ok" id="cb-daily">OK</span></div>
+          <div class="cb-item"><span class="cb-name">Monthly Drawdown &gt; 15%</span><span class="cb-status cb-ok" id="cb-monthly">OK</span></div>
+          <div class="cb-item"><span class="cb-name">API Error Rate &gt; 5%</span><span class="cb-status cb-ok" id="cb-api">OK</span></div>
+          <div class="cb-item"><span class="cb-name">STOP File</span><span class="cb-status cb-ok" id="cb-stop">Not found</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Balance History (30 days)</div>
+      <svg id="balance-chart" width="100%" height="200" viewBox="0 0 900 200" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <script>
+    async function load() {
+      const data = await fetch('/api/metrics').then(r => r.json());
+      const ctrl = await fetch('/api/control/status').then(r => r.json());
+
+      // Risk stats
+      document.getElementById('risk-stats').innerHTML = [
+        ['Balance', '$' + data.balance.toFixed(2), ''],
+        ['Initial Balance', '$' + data.initialBalance.toFixed(2), ''],
+        ['Daily P&L', (data.dailyPnLPct >= 0 ? '+' : '') + data.dailyPnLPct.toFixed(2) + '%', data.dailyPnLPct >= 0 ? 'green' : 'red'],
+        ['Drawdown from Peak', '-' + data.drawdownFromPeakPct.toFixed(2) + '%', data.drawdownFromPeakPct > 10 ? 'red' : data.drawdownFromPeakPct > 5 ? 'yellow' : 'green'],
+        ['Survival Tier', data.tier.toUpperCase(), data.tier === 'normal' ? 'green' : data.tier === 'cautious' ? 'yellow' : 'red'],
+        ['Open Positions', data.openPositions, ''],
+        ['AI Spend Today', '$' + data.aiSpendToday.toFixed(4), ''],
+      ].map(([label, value, cls]) =>
+        `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value ${cls}">${value}</span></div>`
+      ).join('');
+
+      // Circuit breakers
+      if (data.dailyPnLPct < -5) { document.getElementById('cb-daily').textContent = 'TRIGGERED'; document.getElementById('cb-daily').className = 'cb-status cb-triggered'; }
+      if (data.drawdownFromPeakPct > 15) { document.getElementById('cb-monthly').textContent = 'TRIGGERED'; document.getElementById('cb-monthly').className = 'cb-status cb-triggered'; }
+      if (ctrl.stopFileExists) { document.getElementById('cb-stop').textContent = 'FOUND'; document.getElementById('cb-stop').className = 'cb-status cb-triggered'; }
+
+      // Balance chart
+      const log = data.survivalLog;
+      if (log && log.length > 1) {
+        const svg = document.getElementById('balance-chart');
+        const w = 900, h = 200, pad = 40;
+        const balances = log.map(d => d.ending_balance).reverse();
+        const min = Math.min(...balances) * 0.99;
+        const max = Math.max(...balances) * 1.01;
+        const scaleX = i => pad + (i / (balances.length - 1)) * (w - pad * 2);
+        const scaleY = v => h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+
+        const points = balances.map((b, i) => `${scaleX(i)},${scaleY(b)}`).join(' ');
+        const areaPoints = `${scaleX(0)},${h - pad} ${points} ${scaleX(balances.length-1)},${h - pad}`;
+        const initial = log[log.length - 1]?.starting_balance ?? balances[0];
+        const initialY = scaleY(initial);
+
+        svg.innerHTML = `
+          <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1f6feb" stop-opacity="0.3"/><stop offset="100%" stop-color="#1f6feb" stop-opacity="0"/></linearGradient></defs>
+          <polygon points="${areaPoints}" fill="url(#g)"/>
+          <polyline points="${points}" fill="none" stroke="#58a6ff" stroke-width="2"/>
+          <line x1="${pad}" y1="${initialY}" x2="${w - pad}" y2="${initialY}" stroke="#d29922" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="${w - pad + 4}" y="${initialY + 4}" fill="#d29922" font-size="10">Initial</text>
+          <text x="${pad}" y="${h - 8}" fill="#8b949e" font-size="10">${log[log.length-1]?.date}</text>
+          <text x="${w - 60}" y="${h - 8}" fill="#8b949e" font-size="10">${log[0]?.date}</text>
+        `;
+      }
+    }
+
+    load();
+    setInterval(load, 10000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,2398 @@
+{
+  "scan_metadata": {
+    "timestamp": "2026-03-27T00:06:18.944602",
+    "total_scanned": 503,
+    "passed_gates": 423,
+    "top_n": 20
+  },
+  "top_stocks": [
+    {
+      "ticker": "DOC",
+      "company": "Healthpeak Properties",
+      "sector": "Health Care REITs",
+      "score": 68.9,
+      "score_breakdown": {
+        "volatility_edge": 13.2,
+        "liquidity": 20.7,
+        "earnings_safety": 10.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 16.790000915527344,
+        "atm_iv": 0.375,
+        "iv_rank": 49.6,
+        "iv_percentile": 66.5,
+        "hv20": 25.01,
+        "hv30": 27.91,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 27,
+        "open_interest": 30633,
+        "bid_ask_pct": 15.38
+      },
+      "greeks": {
+        "delta": 0.3507,
+        "gamma": 0.245427,
+        "theta": -0.0141,
+        "vega": 0.0149
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 37.5,
+          "max_loss": 212.5,
+          "net_credit": 0.375,
+          "breakeven_lower": 14.62,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.938,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 25.0,
+          "max_loss": 225.0,
+          "net_credit": 0.25,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 17.75,
+          "prob_of_profit": 0.268,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 62.5,
+          "max_loss": 162.5,
+          "net_credit": 0.625,
+          "breakeven_lower": 14.62,
+          "breakeven_upper": 17.75,
+          "prob_of_profit": 0.669,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 145.0,
+          "net_credit": -1.45,
+          "breakeven_lower": 16.05,
+          "breakeven_upper": 18.95,
+          "prob_of_profit": 0.397,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 50.0,
+          "net_credit": -0.5,
+          "breakeven_lower": 14.5,
+          "breakeven_upper": 18.0,
+          "prob_of_profit": 0.271,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "CLX",
+      "company": "Clorox",
+      "sector": "Household Products",
+      "score": 64.4,
+      "score_breakdown": {
+        "volatility_edge": 27.2,
+        "liquidity": 4.2,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 8.0
+      },
+      "metrics": {
+        "spot_price": 102.18000030517578,
+        "atm_iv": 0.3766,
+        "iv_rank": 91.7,
+        "iv_percentile": 96.5,
+        "hv20": 31.23,
+        "hv30": 29.4,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 39,
+        "open_interest": 525,
+        "bid_ask_pct": 12.77
+      },
+      "greeks": {
+        "delta": 0.6239,
+        "gamma": 0.041121,
+        "theta": -0.0915,
+        "vega": 0.093
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 95.0,
+          "max_loss": 405.0,
+          "net_credit": 0.95,
+          "breakeven_lower": 99.05,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.635,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 30.0,
+          "max_loss": 470.0,
+          "net_credit": 0.3,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 110.3,
+          "prob_of_profit": 0.199,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 125.0,
+          "max_loss": 345.0,
+          "net_credit": 1.25,
+          "breakeven_lower": 99.05,
+          "breakeven_upper": 110.3,
+          "prob_of_profit": 0.436,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 730.0,
+          "net_credit": -7.3,
+          "breakeven_lower": 92.7,
+          "breakeven_upper": 107.3,
+          "prob_of_profit": 0.435,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 185.0,
+          "net_credit": -1.85,
+          "breakeven_lower": 93.15,
+          "breakeven_upper": 111.85,
+          "prob_of_profit": 0.311,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "ADM",
+      "company": "Archer Daniels Midland",
+      "sector": "Agricultural Products & Services",
+      "score": 62.4,
+      "score_breakdown": {
+        "volatility_edge": 16.4,
+        "liquidity": 9.0,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 72.33000183105469,
+        "atm_iv": 0.384,
+        "iv_rank": 59.2,
+        "iv_percentile": 93.0,
+        "hv20": 34.6,
+        "hv30": 29.9,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 39,
+        "open_interest": 1737,
+        "bid_ask_pct": 3.77
+      },
+      "greeks": {
+        "delta": 0.5207,
+        "gamma": 0.059796,
+        "theta": -0.068,
+        "vega": 0.0691
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 80.0,
+          "max_loss": 420.0,
+          "net_credit": 0.8,
+          "breakeven_lower": 69.2,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.684,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 20.0,
+          "max_loss": 230.0,
+          "net_credit": 0.2,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 77.7,
+          "prob_of_profit": 0.218,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 100.0,
+          "max_loss": 320.0,
+          "net_credit": 1.0,
+          "breakeven_lower": 69.2,
+          "breakeven_upper": 77.7,
+          "prob_of_profit": 0.466,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 550.0,
+          "net_credit": -5.5,
+          "breakeven_lower": 67.0,
+          "breakeven_upper": 78.0,
+          "prob_of_profit": 0.409,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 205.0,
+          "net_credit": -2.05,
+          "breakeven_lower": 65.45,
+          "breakeven_upper": 79.55,
+          "prob_of_profit": 0.29,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "DRI",
+      "company": "Darden Restaurants",
+      "sector": "Restaurants",
+      "score": 62.2,
+      "score_breakdown": {
+        "volatility_edge": 19.3,
+        "liquidity": 1.0,
+        "earnings_safety": 20.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 198.8699951171875,
+        "atm_iv": 0.2979,
+        "iv_rank": 67.8,
+        "iv_percentile": 77.4,
+        "hv20": 27.77,
+        "hv30": 26.9,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": null,
+        "open_interest": 225,
+        "bid_ask_pct": 22.68
+      },
+      "greeks": {
+        "delta": 0.4987,
+        "gamma": 0.028078,
+        "theta": -0.1478,
+        "vega": 0.1903
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 5.0,
+          "max_loss": 495.0,
+          "net_credit": 0.05,
+          "breakeven_lower": 189.95,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.74,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 40.0,
+          "max_loss": 960.0,
+          "net_credit": 0.4,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 210.4,
+          "prob_of_profit": 0.215,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 45.0,
+          "max_loss": 915.0,
+          "net_credit": 0.45,
+          "breakeven_lower": 189.95,
+          "breakeven_upper": 210.4,
+          "prob_of_profit": 0.525,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1330.0,
+          "net_credit": -13.3,
+          "breakeven_lower": 186.7,
+          "breakeven_upper": 213.3,
+          "prob_of_profit": 0.352,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 570.0,
+          "net_credit": -5.7,
+          "breakeven_lower": 184.3,
+          "breakeven_upper": 215.7,
+          "prob_of_profit": 0.271,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "SMCI",
+      "company": "Supermicro",
+      "sector": "Technology Hardware, Storage & Peripherals",
+      "score": 61.8,
+      "score_breakdown": {
+        "volatility_edge": 30.0,
+        "liquidity": 3.8,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 3.0
+      },
+      "metrics": {
+        "spot_price": 22.209999084472656,
+        "atm_iv": 0.9033,
+        "iv_rank": 100.0,
+        "iv_percentile": 100.0,
+        "hv20": 152.28,
+        "hv30": 131.71,
+        "dte": 34,
+        "expiration": "2026-05-01",
+        "days_to_earnings": 38,
+        "open_interest": 726,
+        "bid_ask_pct": 20.87
+      },
+      "greeks": {
+        "delta": 0.575,
+        "gamma": 0.063996,
+        "theta": -0.0367,
+        "vega": 0.0266
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 85.0,
+          "max_loss": 415.0,
+          "net_credit": 0.85,
+          "breakeven_lower": 19.15,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.699,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 19.0,
+          "max_loss": 381.0,
+          "net_credit": 0.19,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 27.19,
+          "prob_of_profit": 0.232,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 104.0,
+          "max_loss": 311.0,
+          "net_credit": 1.04,
+          "breakeven_lower": 19.15,
+          "breakeven_upper": 27.19,
+          "prob_of_profit": 0.473,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 531.0,
+          "net_credit": -5.31,
+          "breakeven_lower": 16.69,
+          "breakeven_upper": 27.31,
+          "prob_of_profit": 0.377,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 228.0,
+          "net_credit": -2.28,
+          "breakeven_lower": 17.72,
+          "breakeven_upper": 30.28,
+          "prob_of_profit": 0.337,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "NFLX",
+      "company": "Netflix",
+      "sector": "Movies & Entertainment",
+      "score": 60.9,
+      "score_breakdown": {
+        "volatility_edge": 23.2,
+        "liquidity": 5.7,
+        "earnings_safety": 10.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 93.31999969482422,
+        "atm_iv": 0.4685,
+        "iv_rank": 79.5,
+        "iv_percentile": 91.3,
+        "hv20": 49.83,
+        "hv30": 48.83,
+        "dte": 34,
+        "expiration": "2026-05-01",
+        "days_to_earnings": 19,
+        "open_interest": 240,
+        "bid_ask_pct": 9.17
+      },
+      "greeks": {
+        "delta": 0.551,
+        "gamma": 0.029652,
+        "theta": -0.0839,
+        "vega": 0.1127
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 115.0,
+          "max_loss": 385.0,
+          "net_credit": 1.15,
+          "breakeven_lower": 86.85,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.692,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 122.0,
+          "max_loss": 678.0,
+          "net_credit": 1.22,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 103.22,
+          "prob_of_profit": 0.24,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 237.0,
+          "max_loss": 441.0,
+          "net_credit": 2.37,
+          "breakeven_lower": 86.85,
+          "breakeven_upper": 103.22,
+          "prob_of_profit": 0.452,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1050.0,
+          "net_credit": -10.5,
+          "breakeven_lower": 82.5,
+          "breakeven_upper": 103.5,
+          "prob_of_profit": 0.429,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 367.0,
+          "net_credit": -3.67,
+          "breakeven_lower": 82.33,
+          "breakeven_upper": 107.67,
+          "prob_of_profit": 0.349,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "AMT",
+      "company": "American Tower",
+      "sector": "Telecom Tower REITs",
+      "score": 60.6,
+      "score_breakdown": {
+        "volatility_edge": 15.0,
+        "liquidity": 5.6,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 168.9199981689453,
+        "atm_iv": 0.2959,
+        "iv_rank": 55.0,
+        "iv_percentile": 76.5,
+        "hv20": 27.78,
+        "hv30": 31.94,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 32,
+        "open_interest": 227,
+        "bid_ask_pct": 6.9
+      },
+      "greeks": {
+        "delta": 0.4945,
+        "gamma": 0.033271,
+        "theta": -0.1247,
+        "vega": 0.1616
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 50.0,
+          "max_loss": 450.0,
+          "net_credit": 0.5,
+          "breakeven_lower": 164.5,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.646,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 145.0,
+          "max_loss": 855.0,
+          "net_credit": 1.45,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 176.45,
+          "prob_of_profit": 0.269,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 195.0,
+          "max_loss": 660.0,
+          "net_credit": 1.95,
+          "breakeven_lower": 164.5,
+          "breakeven_upper": 176.45,
+          "prob_of_profit": 0.376,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1180.0,
+          "net_credit": -11.8,
+          "breakeven_lower": 158.2,
+          "breakeven_upper": 181.8,
+          "prob_of_profit": 0.328,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 455.0,
+          "net_credit": -4.55,
+          "breakeven_lower": 155.45,
+          "breakeven_upper": 184.55,
+          "prob_of_profit": 0.227,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "APH",
+      "company": "Amphenol",
+      "sector": "Electronic Components",
+      "score": 59.4,
+      "score_breakdown": {
+        "volatility_edge": 14.2,
+        "liquidity": 8.2,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 123.12999725341797,
+        "atm_iv": 0.5472,
+        "iv_rank": 52.7,
+        "iv_percentile": 84.3,
+        "hv20": 49.47,
+        "hv30": 44.32,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 33,
+        "open_interest": 504,
+        "bid_ask_pct": 3.39
+      },
+      "greeks": {
+        "delta": 0.4891,
+        "gamma": 0.024674,
+        "theta": -0.1609,
+        "vega": 0.1178
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 75.0,
+          "max_loss": 425.0,
+          "net_credit": 0.75,
+          "breakeven_lower": 114.25,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.716,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 105.0,
+          "max_loss": 895.0,
+          "net_credit": 1.05,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 136.05,
+          "prob_of_profit": 0.224,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 180.0,
+          "max_loss": 715.0,
+          "net_credit": 1.8,
+          "breakeven_lower": 114.25,
+          "breakeven_upper": 136.05,
+          "prob_of_profit": 0.492,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1380.0,
+          "net_credit": -13.8,
+          "breakeven_lower": 111.2,
+          "breakeven_upper": 138.8,
+          "prob_of_profit": 0.399,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 620.0,
+          "net_credit": -6.2,
+          "breakeven_lower": 108.8,
+          "breakeven_upper": 141.2,
+          "prob_of_profit": 0.321,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "EL",
+      "company": "Est\u00e9e Lauder Companies (The)",
+      "sector": "Personal Care Products",
+      "score": 59.0,
+      "score_breakdown": {
+        "volatility_edge": 15.6,
+        "liquidity": 6.4,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 69.75,
+        "atm_iv": 0.554,
+        "iv_rank": 56.9,
+        "iv_percentile": 88.7,
+        "hv20": 62.08,
+        "hv30": 57.37,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 35,
+        "open_interest": 367,
+        "bid_ask_pct": 8.0
+      },
+      "greeks": {
+        "delta": 0.5244,
+        "gamma": 0.042965,
+        "theta": -0.0924,
+        "vega": 0.0666
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 78.0,
+          "max_loss": 422.0,
+          "net_credit": 0.78,
+          "breakeven_lower": 64.22,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.733,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 62.0,
+          "max_loss": 438.0,
+          "net_credit": 0.62,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 75.62,
+          "prob_of_profit": 0.272,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 140.0,
+          "max_loss": 298.0,
+          "net_credit": 1.4,
+          "breakeven_lower": 64.22,
+          "breakeven_upper": 75.62,
+          "prob_of_profit": 0.461,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 790.0,
+          "net_credit": -7.9,
+          "breakeven_lower": 62.1,
+          "breakeven_upper": 77.9,
+          "prob_of_profit": 0.394,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 392.0,
+          "net_credit": -3.92,
+          "breakeven_lower": 61.08,
+          "breakeven_upper": 78.92,
+          "prob_of_profit": 0.335,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "GIS",
+      "company": "General Mills",
+      "sector": "Packaged Foods & Meats",
+      "score": 59.0,
+      "score_breakdown": {
+        "volatility_edge": 10.7,
+        "liquidity": 3.3,
+        "earnings_safety": 20.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 36.02000045776367,
+        "atm_iv": 0.314,
+        "iv_rank": 42.2,
+        "iv_percentile": 57.8,
+        "hv20": 22.49,
+        "hv30": 28.46,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": null,
+        "open_interest": 384,
+        "bid_ask_pct": 15.87
+      },
+      "greeks": {
+        "delta": 0.6763,
+        "gamma": 0.132466,
+        "theta": -0.0263,
+        "vega": 0.031
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 55.0,
+          "max_loss": 195.0,
+          "net_credit": 0.55,
+          "breakeven_lower": 34.45,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.723,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 25.0,
+          "max_loss": 225.0,
+          "net_credit": 0.25,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 37.75,
+          "prob_of_profit": 0.267,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 80.0,
+          "max_loss": 145.0,
+          "net_credit": 0.8,
+          "breakeven_lower": 34.45,
+          "breakeven_upper": 37.75,
+          "prob_of_profit": 0.456,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 265.0,
+          "net_credit": -2.65,
+          "breakeven_lower": 32.35,
+          "breakeven_upper": 37.65,
+          "prob_of_profit": 0.355,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 140.0,
+          "net_credit": -1.4,
+          "breakeven_lower": 33.6,
+          "breakeven_upper": 38.9,
+          "prob_of_profit": 0.331,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "MPC",
+      "company": "Marathon Petroleum",
+      "sector": "Oil & Gas Refining & Marketing",
+      "score": 57.3,
+      "score_breakdown": {
+        "volatility_edge": 10.1,
+        "liquidity": 7.2,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 248.30999755859375,
+        "atm_iv": 0.4481,
+        "iv_rank": 40.2,
+        "iv_percentile": 90.9,
+        "hv20": 38.07,
+        "hv30": 38.66,
+        "dte": 48,
+        "expiration": "2026-05-15",
+        "days_to_earnings": 38,
+        "open_interest": 1412,
+        "bid_ask_pct": 4.53
+      },
+      "greeks": {
+        "delta": 0.5319,
+        "gamma": 0.009855,
+        "theta": -0.183,
+        "vega": 0.3581
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 380.0,
+          "max_loss": 1620.0,
+          "net_credit": 3.8,
+          "breakeven_lower": 226.2,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.717,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 120.0,
+          "max_loss": 880.0,
+          "net_credit": 1.2,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 281.2,
+          "prob_of_profit": 0.222,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 500.0,
+          "max_loss": 1120.0,
+          "net_credit": 5.0,
+          "breakeven_lower": 226.2,
+          "breakeven_upper": 281.2,
+          "prob_of_profit": 0.495,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 3250.0,
+          "net_credit": -32.5,
+          "breakeven_lower": 217.5,
+          "breakeven_upper": 282.5,
+          "prob_of_profit": 0.421,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 1420.0,
+          "net_credit": -14.2,
+          "breakeven_lower": 215.8,
+          "breakeven_upper": 294.2,
+          "prob_of_profit": 0.342,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "EXE",
+      "company": "Expand Energy",
+      "sector": "Oil & Gas Exploration & Production",
+      "score": 55.9,
+      "score_breakdown": {
+        "volatility_edge": 7.7,
+        "liquidity": 12.1,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 11.0
+      },
+      "metrics": {
+        "spot_price": 111.05000305175781,
+        "atm_iv": 0.3936,
+        "iv_rank": 33.1,
+        "iv_percentile": 41.7,
+        "hv20": 28.46,
+        "hv30": 34.11,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 32,
+        "open_interest": 6438,
+        "bid_ask_pct": 5.24
+      },
+      "greeks": {
+        "delta": 0.5708,
+        "gamma": 0.037455,
+        "theta": -0.106,
+        "vega": 0.1046
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 61.0,
+          "max_loss": 439.0,
+          "net_credit": 0.61,
+          "breakeven_lower": 104.39,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.744,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 43.0,
+          "max_loss": 457.0,
+          "net_credit": 0.43,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 120.43,
+          "prob_of_profit": 0.195,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 104.0,
+          "max_loss": 353.0,
+          "net_credit": 1.04,
+          "breakeven_lower": 104.39,
+          "breakeven_upper": 120.43,
+          "prob_of_profit": 0.549,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 860.0,
+          "net_credit": -8.6,
+          "breakeven_lower": 101.4,
+          "breakeven_upper": 118.6,
+          "prob_of_profit": 0.411,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 325.0,
+          "net_credit": -3.25,
+          "breakeven_lower": 101.75,
+          "breakeven_upper": 123.25,
+          "prob_of_profit": 0.312,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "AEP",
+      "company": "American Electric Power",
+      "sector": "Electric Utilities",
+      "score": 54.9,
+      "score_breakdown": {
+        "volatility_edge": 10.6,
+        "liquidity": 4.3,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 128.85000610351562,
+        "atm_iv": 0.2581,
+        "iv_rank": 41.8,
+        "iv_percentile": 59.1,
+        "hv20": 17.67,
+        "hv30": 21.3,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 40,
+        "open_interest": 1798,
+        "bid_ask_pct": 19.61
+      },
+      "greeks": {
+        "delta": 0.4736,
+        "gamma": 0.04991,
+        "theta": -0.0836,
+        "vega": 0.123
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 50.0,
+          "max_loss": 450.0,
+          "net_credit": 0.5,
+          "breakeven_lower": 124.5,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.71,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 35.0,
+          "max_loss": 465.0,
+          "net_credit": 0.35,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 135.35,
+          "prob_of_profit": 0.213,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 85.0,
+          "max_loss": 380.0,
+          "net_credit": 0.85,
+          "breakeven_lower": 124.5,
+          "breakeven_upper": 135.35,
+          "prob_of_profit": 0.497,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 670.0,
+          "net_credit": -6.7,
+          "breakeven_lower": 123.3,
+          "breakeven_upper": 136.7,
+          "prob_of_profit": 0.408,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 275.0,
+          "net_credit": -2.75,
+          "breakeven_lower": 122.25,
+          "breakeven_upper": 137.75,
+          "prob_of_profit": 0.338,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "EXC",
+      "company": "Exelon",
+      "sector": "Electric Utilities",
+      "score": 54.5,
+      "score_breakdown": {
+        "volatility_edge": 14.7,
+        "liquidity": 1.7,
+        "earnings_safety": 15.0,
+        "sector_balance": 8.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 48.400001525878906,
+        "atm_iv": 0.2568,
+        "iv_rank": 54.2,
+        "iv_percentile": 81.7,
+        "hv20": 20.72,
+        "hv30": 26.93,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 34,
+        "open_interest": 939,
+        "bid_ask_pct": 23.08
+      },
+      "greeks": {
+        "delta": 0.584,
+        "gamma": 0.130814,
+        "theta": -0.0314,
+        "vega": 0.0453
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 15.0,
+          "max_loss": 85.0,
+          "net_credit": 0.15,
+          "breakeven_lower": 46.85,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.701,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 20.0,
+          "max_loss": 480.0,
+          "net_credit": 0.2,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 50.2,
+          "prob_of_profit": 0.277,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 35.0,
+          "max_loss": 445.0,
+          "net_credit": 0.35,
+          "breakeven_lower": 46.85,
+          "breakeven_upper": 50.2,
+          "prob_of_profit": 0.425,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 245.0,
+          "net_credit": -2.45,
+          "breakeven_lower": 45.55,
+          "breakeven_upper": 50.45,
+          "prob_of_profit": 0.413,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 110.0,
+          "net_credit": -1.1,
+          "breakeven_lower": 45.9,
+          "breakeven_upper": 51.1,
+          "prob_of_profit": 0.384,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "AWK",
+      "company": "American Water Works",
+      "sector": "Water Utilities",
+      "score": 54.1,
+      "score_breakdown": {
+        "volatility_edge": 13.4,
+        "liquidity": 0.7,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 137.50999450683594,
+        "atm_iv": 0.2747,
+        "iv_rank": 50.1,
+        "iv_percentile": 59.1,
+        "hv20": 23.02,
+        "hv30": 26.14,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 33,
+        "open_interest": 460,
+        "bid_ask_pct": 25.0
+      },
+      "greeks": {
+        "delta": 0.4224,
+        "gamma": 0.0432,
+        "theta": -0.092,
+        "vega": 0.1291
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 75.0,
+          "max_loss": 425.0,
+          "net_credit": 0.75,
+          "breakeven_lower": 134.25,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.642,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 35.0,
+          "max_loss": 465.0,
+          "net_credit": 0.35,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 145.35,
+          "prob_of_profit": 0.2,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 110.0,
+          "max_loss": 355.0,
+          "net_credit": 1.1,
+          "breakeven_lower": 134.25,
+          "breakeven_upper": 145.35,
+          "prob_of_profit": 0.442,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 760.0,
+          "net_credit": -7.6,
+          "breakeven_lower": 132.4,
+          "breakeven_upper": 147.6,
+          "prob_of_profit": 0.424,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 260.0,
+          "net_credit": -2.6,
+          "breakeven_lower": 127.4,
+          "breakeven_upper": 147.6,
+          "prob_of_profit": 0.264,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "AEE",
+      "company": "Ameren",
+      "sector": "Multi-Utilities",
+      "score": 54.0,
+      "score_breakdown": {
+        "volatility_edge": 11.2,
+        "liquidity": 2.8,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 15.0
+      },
+      "metrics": {
+        "spot_price": 108.56999969482422,
+        "atm_iv": 0.2238,
+        "iv_rank": 43.6,
+        "iv_percentile": 91.3,
+        "hv20": 18.36,
+        "hv30": 19.66,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 34,
+        "open_interest": 300,
+        "bid_ask_pct": 18.18
+      },
+      "greeks": {
+        "delta": 0.4351,
+        "gamma": 0.067554,
+        "theta": -0.0608,
+        "vega": 0.1025
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 75.0,
+          "max_loss": 425.0,
+          "net_credit": 0.75,
+          "breakeven_lower": 104.25,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.775,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 100.0,
+          "max_loss": 400.0,
+          "net_credit": 1.0,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 111.0,
+          "prob_of_profit": 0.34,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 175.0,
+          "max_loss": 250.0,
+          "net_credit": 1.75,
+          "breakeven_lower": 104.25,
+          "breakeven_upper": 111.0,
+          "prob_of_profit": 0.435,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 640.0,
+          "net_credit": -6.4,
+          "breakeven_lower": 103.6,
+          "breakeven_upper": 116.4,
+          "prob_of_profit": 0.289,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 350.0,
+          "net_credit": -3.5,
+          "breakeven_lower": 101.5,
+          "breakeven_upper": 118.5,
+          "prob_of_profit": 0.156,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "BG",
+      "company": "Bunge Global",
+      "sector": "Agricultural Products & Services",
+      "score": 53.5,
+      "score_breakdown": {
+        "volatility_edge": 13.7,
+        "liquidity": 2.9,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 125.76000213623047,
+        "atm_iv": 0.4152,
+        "iv_rank": 51.0,
+        "iv_percentile": 63.5,
+        "hv20": 30.67,
+        "hv30": 26.61,
+        "dte": 21,
+        "expiration": "2026-04-17",
+        "days_to_earnings": 45,
+        "open_interest": 625,
+        "bid_ask_pct": 17.48
+      },
+      "greeks": {
+        "delta": 0.5555,
+        "gamma": 0.031547,
+        "theta": -0.1266,
+        "vega": 0.1192
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 15.0,
+          "max_loss": 485.0,
+          "net_credit": 0.15,
+          "breakeven_lower": 119.85,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.686,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 40.0,
+          "max_loss": 460.0,
+          "net_credit": 0.4,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 135.4,
+          "prob_of_profit": 0.229,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 55.0,
+          "max_loss": 430.0,
+          "net_credit": 0.55,
+          "breakeven_lower": 119.85,
+          "breakeven_upper": 135.4,
+          "prob_of_profit": 0.456,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1050.0,
+          "net_credit": -10.5,
+          "breakeven_lower": 114.5,
+          "breakeven_upper": 135.5,
+          "prob_of_profit": 0.4,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 485.0,
+          "net_credit": -4.85,
+          "breakeven_lower": 115.15,
+          "breakeven_upper": 139.85,
+          "prob_of_profit": 0.331,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "AAPL",
+      "company": "Apple Inc.",
+      "sector": "Technology Hardware, Storage & Peripherals",
+      "score": 51.2,
+      "score_breakdown": {
+        "volatility_edge": 1.0,
+        "liquidity": 14.2,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 11.0
+      },
+      "metrics": {
+        "spot_price": 252.88999938964844,
+        "atm_iv": 0.3232,
+        "iv_rank": 13.0,
+        "iv_percentile": 30.4,
+        "hv20": 18.33,
+        "hv30": 25.75,
+        "dte": 35,
+        "expiration": "2026-05-01",
+        "days_to_earnings": 34,
+        "open_interest": 439,
+        "bid_ask_pct": 2.15
+      },
+      "greeks": {
+        "delta": 0.506,
+        "gamma": 0.015761,
+        "theta": -0.1604,
+        "vega": 0.3124
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 175.0,
+          "max_loss": 825.0,
+          "net_credit": 1.75,
+          "breakeven_lower": 238.25,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.724,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 225.0,
+          "max_loss": 1275.0,
+          "net_credit": 2.25,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 272.25,
+          "prob_of_profit": 0.231,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 400.0,
+          "max_loss": 875.0,
+          "net_credit": 4.0,
+          "breakeven_lower": 238.25,
+          "breakeven_upper": 272.25,
+          "prob_of_profit": 0.494,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1980.0,
+          "net_credit": -19.8,
+          "breakeven_lower": 235.2,
+          "breakeven_upper": 274.8,
+          "prob_of_profit": 0.438,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 737.0,
+          "net_credit": -7.37,
+          "breakeven_lower": 232.63,
+          "breakeven_upper": 282.37,
+          "prob_of_profit": 0.337,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "WEC",
+      "company": "WEC Energy Group",
+      "sector": "Electric Utilities",
+      "score": 51.0,
+      "score_breakdown": {
+        "volatility_edge": 21.6,
+        "liquidity": 2.3,
+        "earnings_safety": 15.0,
+        "sector_balance": 0.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 114.0199966430664,
+        "atm_iv": 0.2444,
+        "iv_rank": 74.8,
+        "iv_percentile": 91.7,
+        "hv20": 18.15,
+        "hv30": 17.6,
+        "dte": 48,
+        "expiration": "2026-05-15",
+        "days_to_earnings": 38,
+        "open_interest": 725,
+        "bid_ask_pct": 20.9
+      },
+      "greeks": {
+        "delta": 0.5088,
+        "gamma": 0.03947,
+        "theta": -0.0494,
+        "vega": 0.1649
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 35.0,
+          "max_loss": 465.0,
+          "net_credit": 0.35,
+          "breakeven_lower": 109.65,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.67,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 15.0,
+          "max_loss": 485.0,
+          "net_credit": 0.15,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 120.15,
+          "prob_of_profit": 0.277,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 50.0,
+          "max_loss": 435.0,
+          "net_credit": 0.5,
+          "breakeven_lower": 109.65,
+          "breakeven_upper": 120.15,
+          "prob_of_profit": 0.393,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 810.0,
+          "net_credit": -8.1,
+          "breakeven_lower": 106.9,
+          "breakeven_upper": 123.1,
+          "prob_of_profit": 0.427,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 345.0,
+          "net_credit": -3.45,
+          "breakeven_lower": 106.55,
+          "breakeven_upper": 128.45,
+          "prob_of_profit": 0.312,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    },
+    {
+      "ticker": "LYB",
+      "company": "LyondellBasell",
+      "sector": "Specialty Chemicals",
+      "score": 50.3,
+      "score_breakdown": {
+        "volatility_edge": 14.5,
+        "liquidity": 3.8,
+        "earnings_safety": 10.0,
+        "sector_balance": 10.0,
+        "technical_setup": 12.0
+      },
+      "metrics": {
+        "spot_price": 77.72000122070312,
+        "atm_iv": 0.5486,
+        "iv_rank": 53.4,
+        "iv_percentile": 83.5,
+        "hv20": 53.94,
+        "hv30": 50.27,
+        "dte": 48,
+        "expiration": "2026-05-15",
+        "days_to_earnings": 27,
+        "open_interest": 252,
+        "bid_ask_pct": 13.95
+      },
+      "greeks": {
+        "delta": 0.5583,
+        "gamma": 0.025526,
+        "theta": -0.0686,
+        "vega": 0.1112
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 150.0,
+          "max_loss": 600.0,
+          "net_credit": 1.5,
+          "breakeven_lower": 71.0,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.675,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 95.0,
+          "max_loss": 905.0,
+          "net_credit": 0.95,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 90.95,
+          "prob_of_profit": 0.215,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 245.0,
+          "max_loss": 660.0,
+          "net_credit": 2.45,
+          "breakeven_lower": 71.0,
+          "breakeven_upper": 90.95,
+          "prob_of_profit": 0.461,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1310.0,
+          "net_credit": -13.1,
+          "breakeven_lower": 64.4,
+          "breakeven_upper": 90.6,
+          "prob_of_profit": 0.393,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 555.0,
+          "net_credit": -5.55,
+          "breakeven_lower": 64.45,
+          "breakeven_upper": 95.55,
+          "prob_of_profit": 0.323,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    }
+  ],
+  "claude_analysis": {
+    "raw": "",
+    "tokens": 0,
+    "cost": 0.0
+  },
+  "eliminated_count": 403,
+  "eliminated_sample": [
+    {
+      "ticker": "MMM",
+      "reason": "OI 33 < 200"
+    },
+    {
+      "ticker": "AOS",
+      "reason": "OI 43 < 200"
+    },
+    {
+      "ticker": "ABBV",
+      "reason": "OI 23 < 200"
+    },
+    {
+      "ticker": "ACN",
+      "reason": "OI 2 < 200"
+    },
+    {
+      "ticker": "ADBE",
+      "reason": "OI 33 < 200"
+    },
+    {
+      "ticker": "AMD",
+      "reason": "OI 161 < 200"
+    },
+    {
+      "ticker": "AES",
+      "reason": "Bid-ask 75.0% > 25%"
+    },
+    {
+      "ticker": "AKAM",
+      "reason": "Bid-ask 32.4% > 25%"
+    },
+    {
+      "ticker": "ALB",
+      "reason": "OI 6 < 200"
+    },
+    {
+      "ticker": "ARE",
+      "reason": "Bid-ask 28.6% > 25%"
+    },
+    {
+      "ticker": "ALLE",
+      "reason": "Bid-ask 29.2% > 25%"
+    },
+    {
+      "ticker": "LNT",
+      "reason": "OI 138 < 200"
+    },
+    {
+      "ticker": "ALL",
+      "reason": "IV Rank 0 < 10"
+    },
+    {
+      "ticker": "GOOGL",
+      "reason": "OI 16 < 200"
+    },
+    {
+      "ticker": "GOOG",
+      "reason": "OI 53 < 200"
+    },
+    {
+      "ticker": "MO",
+      "reason": "Bid-ask 29.7% > 25%"
+    },
+    {
+      "ticker": "AMCR",
+      "reason": "Bid-ask 32.6% > 25%"
+    },
+    {
+      "ticker": "AXP",
+      "reason": "OI 9 < 200"
+    },
+    {
+      "ticker": "AIG",
+      "reason": "OI 0 < 200"
+    },
+    {
+      "ticker": "AME",
+      "reason": "Bid-ask 32.6% > 25%"
+    },
+    {
+      "ticker": "ADI",
+      "reason": "OI 3 < 200"
+    },
+    {
+      "ticker": "AON",
+      "reason": "OI 36 < 200"
+    },
+    {
+      "ticker": "APA",
+      "reason": "IV Rank 0 < 10"
+    },
+    {
+      "ticker": "APO",
+      "reason": "Bid-ask 59.9% > 25%"
+    },
+    {
+      "ticker": "AMAT",
+      "reason": "OI 9 < 200"
+    },
+    {
+      "ticker": "APP",
+      "reason": "OI 0 < 200"
+    },
+    {
+      "ticker": "APTV",
+      "reason": "OI 45 < 200"
+    },
+    {
+      "ticker": "ACGL",
+      "reason": "Bid-ask 43.0% > 25%"
+    },
+    {
+      "ticker": "ARES",
+      "reason": "OI 53 < 200"
+    },
+    {
+      "ticker": "ANET",
+      "reason": "Bid-ask 42.3% > 25%"
+    },
+    {
+      "ticker": "AJG",
+      "reason": "OI 18 < 200"
+    },
+    {
+      "ticker": "AIZ",
+      "reason": "Bid-ask 200.0% > 25%"
+    },
+    {
+      "ticker": "T",
+      "reason": "Bid-ask 30.7% > 25%"
+    },
+    {
+      "ticker": "ATO",
+      "reason": "Bid-ask 26.9% > 25%"
+    },
+    {
+      "ticker": "ADSK",
+      "reason": "OI 4 < 200"
+    },
+    {
+      "ticker": "AZO",
+      "reason": "OI 20 < 200"
+    },
+    {
+      "ticker": "AVB",
+      "reason": "Bid-ask 31.4% > 25%"
+    },
+    {
+      "ticker": "AVY",
+      "reason": "OI 19 < 200"
+    },
+    {
+      "ticker": "AXON",
+      "reason": "OI 86 < 200"
+    },
+    {
+      "ticker": "BALL",
+      "reason": "OI 24 < 200"
+    },
+    {
+      "ticker": "BAC",
+      "reason": "OI 33 < 200"
+    },
+    {
+      "ticker": "BAX",
+      "reason": "Bid-ask 42.9% > 25%"
+    },
+    {
+      "ticker": "BDX",
+      "reason": "IV Rank 4 < 10"
+    },
+    {
+      "ticker": "BRK-B",
+      "reason": "OI 4 < 200"
+    },
+    {
+      "ticker": "BBY",
+      "reason": "OI 4 < 200"
+    },
+    {
+      "ticker": "TECH",
+      "reason": "Bid-ask 51.6% > 25%"
+    },
+    {
+      "ticker": "BX",
+      "reason": "OI 17 < 200"
+    },
+    {
+      "ticker": "XYZ",
+      "reason": "Bid-ask 34.4% > 25%"
+    },
+    {
+      "ticker": "BK",
+      "reason": "OI 183 < 200"
+    },
+    {
+      "ticker": "BA",
+      "reason": "OI 14 < 200"
+    }
+  ]
+}

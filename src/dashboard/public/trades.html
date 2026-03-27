@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Trades</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .toolbar select, .toolbar input { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .toolbar button { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .toolbar button:hover { background: #30363d; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px 10px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 9px 10px; border-top: 1px solid #21262d; vertical-align: top; }
+    tr:hover td { background: #0d1117; }
+    .positive { color: #3fb950; }
+    .negative { color: #f85149; }
+    .neutral { color: #8b949e; }
+    .action-buy { color: #58a6ff; }
+    .action-sell { color: #f85149; }
+    .action-stop_loss { color: #d29922; }
+    .action-take_profit { color: #3fb950; }
+    .action-emergency_liquidation { color: #f85149; font-weight: bold; }
+    .reasoning { color: #8b949e; font-size: 11px; max-width: 400px; word-break: break-word; }
+    .ai-badge { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    .pagination { display: flex; gap: 8px; margin-top: 16px; justify-content: center; }
+    .pagination button { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+    .pagination button.active { background: #1f6feb; border-color: #1f6feb; }
+    .loading { color: #8b949e; text-align: center; padding: 32px; }
+    .summary { display: flex; gap: 24px; margin-bottom: 16px; font-size: 13px; }
+    .summary span { color: #8b949e; }
+    .summary strong { color: #f0f6fc; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+  <div class="container">
+    <div class="toolbar">
+      <select id="symbol-filter"><option value="">All Symbols</option><option>BTC/USDT</option><option>ETH/USDT</option><option>SOL/USDT</option></select>
+      <select id="limit-select"><option value="50">50 rows</option><option value="100">100 rows</option><option value="200">200 rows</option></select>
+      <button onclick="loadTrades(1)">Refresh</button>
+      <div id="summary" class="summary"></div>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th><th>Symbol</th><th>Strategy</th><th>Action</th>
+            <th>Price</th><th>Size</th><th>Fee</th><th>P&L</th>
+            <th>Model</th><th>Reasoning</th>
+          </tr>
+        </thead>
+        <tbody id="trades-body"><tr><td colspan="10" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+
+    async function loadTrades(page = 1) {
+      currentPage = page;
+      const symbol = document.getElementById('symbol-filter').value;
+      const limit = document.getElementById('limit-select').value;
+      const params = new URLSearchParams({ page, limit });
+      if (symbol) params.set('symbol', symbol);
+
+      const data = await fetch('/api/trades?' + params).then(r => r.json());
+      const tbody = document.getElementById('trades-body');
+
+      if (!data.trades.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="loading">No trades yet</td></tr>';
+        return;
+      }
+
+      const totalPnl = data.trades.reduce((s, t) => s + (t.pnl || 0), 0);
+      document.getElementById('summary').innerHTML =
+        `<span>Total: <strong>${data.total}</strong></span>` +
+        `<span>Page P&L: <strong class="${totalPnl >= 0 ? 'positive' : 'negative'}">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</strong></span>`;
+
+      tbody.innerHTML = data.trades.map(t => `
+        <tr>
+          <td class="neutral" style="white-space:nowrap">${new Date(t.timestamp).toLocaleString()}</td>
+          <td>${t.symbol || '—'}</td>
+          <td class="neutral">${t.strategy || '—'}</td>
+          <td class="action-${t.action}">${t.action}</td>
+          <td>$${(t.price || 0).toFixed(2)}</td>
+          <td>${(t.size || 0).toFixed(5)}</td>
+          <td class="neutral">$${(t.fee || 0).toFixed(4)}</td>
+          <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${t.pnl != null ? ((t.pnl >= 0 ? '+' : '') + '$' + t.pnl.toFixed(2)) : '—'}</td>
+          <td>${t.ai_model ? `<span class="ai-badge">${t.ai_model}</span>` : '<span class="neutral">rules</span>'}</td>
+          <td class="reasoning">${t.reasoning || '—'}</td>
+        </tr>`).join('');
+
+      // Pagination
+      const pages = data.pages;
+      const pag = document.getElementById('pagination');
+      pag.innerHTML = Array.from({length: Math.min(pages, 10)}, (_, i) => i + 1).map(p =>
+        `<button class="${p === currentPage ? 'active' : ''}" onclick="loadTrades(${p})">${p}</button>`
+      ).join('');
+    }
+
+    document.getElementById('symbol-filter').addEventListener('change', () => loadTrades(1));
+    document.getElementById('limit-select').addEventListener('change', () => loadTrades(1));
+    loadTrades();
+  </script>
+</body>
+</html>

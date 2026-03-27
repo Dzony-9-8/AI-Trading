@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — Options</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav a.active { color: #f0f6fc; font-weight: bold; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    /* Toolbar */
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .toolbar-left { display: flex; gap: 12px; align-items: center; flex: 1; flex-wrap: wrap; }
+    .meta-badge { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 6px 14px; font-size: 12px; color: #8b949e; }
+    .meta-badge strong { color: #c9d1d9; }
+    .btn { padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; border: 1px solid; transition: background 0.15s; }
+    .btn-default { background: #21262d; border-color: #30363d; color: #c9d1d9; }
+    .btn-default:hover { background: #30363d; }
+    .btn-blue { background: #1f6feb33; border-color: #1f6feb; color: #58a6ff; }
+    .btn-blue:hover { background: #1f6feb55; }
+    .age-ok   { color: #3fb950; }
+    .age-warn { color: #d29922; }
+    .age-old  { color: #f85149; }
+
+    /* Cards */
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+    /* Summary stats row */
+    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 140px; }
+    .stat-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #f0f6fc; }
+    .stat-value.green { color: #3fb950; }
+    .stat-value.blue  { color: #58a6ff; }
+    .stat-value.yellow { color: #d29922; }
+
+    /* Main table */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px 10px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 9px 10px; border-top: 1px solid #21262d; vertical-align: middle; }
+    tr.stock-row { cursor: pointer; }
+    tr.stock-row:hover td { background: #1c2128; }
+    tr.stock-row.expanded td { background: #1c2128; border-bottom: none; }
+
+    /* Score badge */
+    .score-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .score-high   { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+    .score-med    { background: #d2992233; color: #d29922; border: 1px solid #d29922; }
+    .score-low    { background: #21262d;   color: #8b949e; border: 1px solid #30363d; }
+
+    /* Rating stars */
+    .rating { color: #d29922; letter-spacing: 1px; font-size: 13px; }
+
+    /* Expand indicator */
+    .expand-icon { color: #484f58; font-size: 10px; transition: transform 0.2s; display: inline-block; }
+    .expand-icon.open { transform: rotate(90deg); }
+
+    /* Detail row */
+    tr.detail-row td { padding: 0; border-top: none; }
+    .detail-panel { background: #0d1117; border-top: 1px solid #30363d; padding: 16px 20px 20px; display: none; }
+    .detail-panel.open { display: block; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-section-title { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .detail-table th { padding: 5px 8px; background: #161b22; color: #484f58; font-weight: normal; font-size: 10px; text-transform: uppercase; }
+    .detail-table td { padding: 6px 8px; border-top: 1px solid #21262d; color: #c9d1d9; }
+    .detail-table tr:hover td { background: #161b22; }
+
+    /* Score bar */
+    .score-bar-wrap { margin-top: 10px; }
+    .score-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+    .score-bar-label { width: 80px; color: #8b949e; flex-shrink: 0; text-align: right; }
+    .score-bar-track { flex: 1; background: #21262d; border-radius: 3px; height: 6px; overflow: hidden; }
+    .score-bar-fill  { height: 100%; border-radius: 3px; background: #58a6ff; }
+    .score-bar-val   { width: 32px; color: #c9d1d9; text-align: right; flex-shrink: 0; }
+
+    /* News list */
+    .news-item { padding: 6px 0; border-bottom: 1px solid #21262d; font-size: 11px; color: #8b949e; }
+    .news-item:last-child { border-bottom: none; }
+    .news-item a { color: #58a6ff; text-decoration: none; }
+    .news-item a:hover { text-decoration: underline; }
+
+    /* Claude analysis panel */
+    .claude-panel { background: #0d1117; border: 1px solid #1f6feb44; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+    .claude-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .claude-badge { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .claude-body { font-size: 13px; color: #c9d1d9; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+
+    /* Empty / loading states */
+    .empty-state { text-align: center; padding: 60px 24px; color: #484f58; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h2 { font-size: 18px; color: #8b949e; margin-bottom: 8px; }
+    .empty-state p { font-size: 13px; color: #484f58; margin-bottom: 20px; line-height: 1.6; }
+    .cmd-block { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px 16px; display: inline-block; font-size: 12px; color: #3fb950; margin-bottom: 8px; }
+    .loading { color: #8b949e; text-align: center; padding: 32px; }
+
+    /* Run scan modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: #00000088; align-items: center; justify-content: center; z-index: 100; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 24px; width: 500px; max-width: 90vw; }
+    .modal-box h3 { color: #f0f6fc; margin-bottom: 8px; font-size: 16px; }
+    .modal-box p { color: #8b949e; font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+    .modal-cmd { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #3fb950; margin-bottom: 16px; word-break: break-all; }
+    .modal-actions { display: flex; justify-content: flex-end; }
+
+    /* Positive / negative */
+    .positive { color: #3fb950; }
+    .negative { color: #f85149; }
+    .muted    { color: #8b949e; }
+
+    /* History sidebar (small) */
+    .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .history-chip { background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 11px; color: #8b949e; }
+
+    /* Ticker cell */
+    .ticker { font-weight: bold; color: #f0f6fc; font-size: 13px; }
+    .sector-tag { font-size: 10px; color: #484f58; margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options" class="active">Options</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+
+  <div class="container">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="meta-badge" id="scan-time">No scan loaded</span>
+        <span class="meta-badge" id="scan-age"></span>
+        <span class="meta-badge" id="scan-file" style="display:none"></span>
+      </div>
+      <button class="btn btn-default" onclick="loadData()">Refresh</button>
+      <button class="btn btn-blue" id="run-btn" onclick="runScan()">Run Scan Now</button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="stats-row" id="stats-row" style="display:none">
+      <div class="stat-card"><div class="stat-label">Stocks Scanned</div><div class="stat-value blue" id="stat-scanned">—</div></div>
+      <div class="stat-card"><div class="stat-label">Passed Filter</div><div class="stat-value green" id="stat-passed">—</div></div>
+      <div class="stat-card"><div class="stat-label">Top Score</div><div class="stat-value yellow" id="stat-topscore">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avg IV Rank</div><div class="stat-value" id="stat-avgiv">—</div></div>
+    </div>
+
+    <!-- Main results card -->
+    <div class="card" id="results-card">
+      <div class="card-title">Top Options Candidates</div>
+      <div id="table-container"><div class="loading">Loading scan results...</div></div>
+    </div>
+
+    <!-- Claude AI analysis -->
+    <div class="claude-panel" id="claude-panel" style="display:none">
+      <div class="claude-header">
+        <span class="claude-badge">Claude AI</span>
+        <span style="font-size:13px; color:#8b949e;">Market Analysis</span>
+      </div>
+      <div class="claude-body" id="claude-body"></div>
+    </div>
+
+    <!-- Scan history -->
+    <div class="card" id="history-card" style="display:none">
+      <div class="card-title">Recent Scans</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Scan running banner -->
+  <div id="scan-banner" style="display:none; background:#1f6feb22; border:1px solid #1f6feb44; border-radius:6px; padding:10px 16px; margin:0 0 12px; font-size:13px; color:#58a6ff; text-align:center;">
+    ⏳ Scan in progress — results will appear automatically when complete (~8–12 min)
+    <span id="scan-elapsed" style="margin-left:12px; color:#8b949e"></span>
+  </div>
+
+  <script>
+    let scanData = null;
+    let scanPolling = null;
+    let elapsedTimer = null;
+    let scanElapsed = 0;
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function scoreClass(score) {
+      if (score >= 70) return 'score-high';
+      if (score >= 45) return 'score-med';
+      return 'score-low';
+    }
+    function ratingStars(rating) {
+      if (!rating || rating === 'N/A') return '<span class="muted">—</span>';
+      const r = String(rating).toLowerCase();
+      if (r.includes('strong buy'))  return '<span class="rating">★★★★★</span>';
+      if (r.includes('buy'))         return '<span class="rating">★★★★</span>';
+      if (r.includes('hold'))        return '<span class="rating" style="color:#8b949e">★★★</span>';
+      if (r.includes('sell'))        return '<span class="rating" style="color:#f85149">★★</span>';
+      return `<span class="muted">${esc(rating)}</span>`;
+    }
+    function fmtAge(minutes) {
+      if (minutes < 60)   return `${minutes}m ago`;
+      if (minutes < 1440) return `${Math.floor(minutes/60)}h ${minutes%60}m ago`;
+      return `${Math.floor(minutes/1440)}d ago`;
+    }
+    function ageClass(minutes) {
+      if (minutes < 120)  return 'age-ok';
+      if (minutes < 1440) return 'age-warn';
+      return 'age-old';
+    }
+    function fmtNum(v, dec=1) { return v == null ? '—' : Number(v).toFixed(dec); }
+
+    // ── Score breakdown bar ───────────────────────────────────────────────────
+    function buildScoreBar(breakdown) {
+      if (!breakdown || typeof breakdown !== 'object') return '';
+      const entries = Object.entries(breakdown);
+      if (!entries.length) return '';
+      const maxVal = Math.max(...entries.map(([,v]) => Math.abs(Number(v)||0)), 1);
+      return `<div class="score-bar-wrap">` + entries.map(([k,v]) => {
+        const val = Number(v)||0;
+        const pct = Math.min(100, Math.abs(val)/maxVal*100);
+        const color = val >= 0 ? '#3fb950' : '#f85149';
+        const label = k.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+        return `<div class="score-bar-row">
+          <span class="score-bar-label">${esc(label)}</span>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div></div>
+          <span class="score-bar-val">${val>=0?'+':''}${val.toFixed(1)}</span>
+        </div>`;
+      }).join('') + `</div>`;
+    }
+
+    // ── Strategies table — strategies is an OBJECT keyed by name ─────────────
+    function buildStrategiesTable(strategies) {
+      if (!strategies) return '<span class="muted" style="font-size:12px">No strategy data</span>';
+      // Support both array (old) and object (new scanner format)
+      const rows = Array.isArray(strategies)
+        ? strategies
+        : Object.values(strategies).filter(s => s && s.valid !== false);
+      if (!rows.length) return '<span class="muted" style="font-size:12px">No strategy data</span>';
+      return `<table class="detail-table">
+        <thead><tr><th>Strategy</th><th>Max Profit</th><th>Max Loss</th><th>Credit</th><th>POP %</th></tr></thead>
+        <tbody>` + rows.map(s => `<tr>
+          <td>${esc(s.name ?? '—')}</td>
+          <td class="positive">${s.max_profit != null ? '$'+Number(s.max_profit).toFixed(0) : '—'}</td>
+          <td class="negative">${s.max_loss  != null ? '$'+Number(s.max_loss).toFixed(0)  : '—'}</td>
+          <td>${s.net_credit != null ? '$'+Number(s.net_credit).toFixed(2) : '—'}</td>
+          <td>${s.prob_of_profit != null ? (Number(s.prob_of_profit)*100).toFixed(0)+'%' : '—'}</td>
+        </tr>`).join('') + `</tbody></table>`;
+    }
+
+    // ── Derive best strategy from strategies object ───────────────────────────
+    function getBestStrategy(strategies) {
+      if (!strategies) return '—';
+      const rows = Array.isArray(strategies)
+        ? strategies
+        : Object.values(strategies).filter(s => s && s.valid !== false);
+      if (!rows.length) return '—';
+      rows.sort((a,b) => (b.prob_of_profit||0) - (a.prob_of_profit||0));
+      return rows[0].name ?? '—';
+    }
+
+    function getBestPop(strategies) {
+      if (!strategies) return null;
+      const rows = Array.isArray(strategies)
+        ? strategies
+        : Object.values(strategies).filter(s => s && s.valid !== false);
+      if (!rows.length) return null;
+      rows.sort((a,b) => (b.prob_of_profit||0) - (a.prob_of_profit||0));
+      return rows[0].prob_of_profit ?? null;
+    }
+
+    // ── News list ─────────────────────────────────────────────────────────────
+    function buildNewsList(news) {
+      if (!news || !Array.isArray(news) || !news.length)
+        return '<span class="muted" style="font-size:12px">No news available</span>';
+      return news.slice(0,5).map(n => {
+        const title = n.title ?? n.headline ?? String(n);
+        const url   = n.url ?? n.link ?? null;
+        const src   = n.source ?? '';
+        return `<div class="news-item">${url
+          ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(title)}</a>`
+          : esc(title)}${src ? ` <span class="muted">[${esc(src)}]</span>` : ''}</div>`;
+      }).join('');
+    }
+
+    // ── Build main table ──────────────────────────────────────────────────────
+    function buildTable(stocks) {
+      if (!stocks || !stocks.length)
+        return `<div class="loading muted">No stocks passed the filter in this scan.</div>`;
+
+      const header = `<thead><tr>
+        <th style="width:24px"></th><th>Rank</th><th>Ticker</th><th>Score</th>
+        <th>IV %</th><th>IV Rank</th><th>HV20 %</th><th>DTE</th>
+        <th>Days to Earnings</th><th>Sector</th><th>Best Strategy</th><th>POP %</th><th>Rating</th>
+      </tr></thead>`;
+
+      const body = stocks.map((s, idx) => {
+        // Support both flat fields and nested metrics (new scanner format)
+        const m          = s.metrics ?? s;
+        const score      = s.score ?? 0;
+        const ticker     = s.ticker ?? s.symbol ?? '—';
+        const sector     = s.sector ?? '—';
+        const iv         = m.atm_iv != null ? m.atm_iv * 100 : (m.iv_pct ?? m.iv ?? null);
+        const ivRank     = m.iv_rank ?? m.iv_percentile ?? null;
+        const hv20       = m.hv20 ?? null;
+        const dte        = m.dte ?? null;
+        const daysEarn   = m.days_to_earnings ?? null;
+        const strategies = s.strategies ?? null;
+        const strategy   = getBestStrategy(strategies);
+        const pop        = getBestPop(strategies);
+        const rating     = s.analyst?.consensus ?? s.rating ?? null;
+        const breakdown  = s.score_breakdown ?? null;
+        const news       = s.news ?? null;
+
+        return `<tr class="stock-row" id="stock-${idx}" onclick="toggleDetail(${idx})">
+          <td><span class="expand-icon" id="icon-${idx}">&#9654;</span></td>
+          <td class="muted">${idx+1}</td>
+          <td><div class="ticker">${esc(ticker)}</div><div class="sector-tag">${esc(s.company??sector)}</div></td>
+          <td><span class="score-badge ${scoreClass(score)}">${Number(score).toFixed(0)}</span></td>
+          <td>${iv != null ? Number(iv).toFixed(1)+'%' : '—'}</td>
+          <td>${ivRank != null ? Number(ivRank).toFixed(0) : '—'}</td>
+          <td>${hv20 != null ? Number(hv20).toFixed(1)+'%' : '—'}</td>
+          <td>${dte != null ? Number(dte).toFixed(0)+'d' : '—'}</td>
+          <td class="muted" style="font-size:11px">${daysEarn != null ? daysEarn+'d' : '—'}</td>
+          <td class="muted" style="font-size:11px">${esc(sector)}</td>
+          <td style="color:#58a6ff">${esc(strategy)}</td>
+          <td>${pop != null ? (pop*100).toFixed(0)+'%' : '—'}</td>
+          <td>${ratingStars(rating)}</td>
+        </tr>
+        <tr class="detail-row" id="detail-row-${idx}"><td colspan="13">
+          <div class="detail-panel" id="detail-${idx}">
+            <div class="detail-grid">
+              <div><div class="detail-section-title">All Strategies</div>${buildStrategiesTable(strategies)}</div>
+              <div><div class="detail-section-title">Score Breakdown</div>${breakdown ? buildScoreBar(breakdown) : '<span class="muted" style="font-size:12px">No breakdown</span>'}</div>
+            </div>
+            <div style="margin-top:16px"><div class="detail-section-title">Recent News</div>${buildNewsList(news)}</div>
+          </div>
+        </td></tr>`;
+      }).join('');
+
+      return `<table>${header}<tbody>${body}</tbody></table>`;
+    }
+
+    // ── Toggle expand/collapse ────────────────────────────────────────────────
+    function toggleDetail(idx) {
+      const panel = document.getElementById(`detail-${idx}`);
+      const icon  = document.getElementById(`icon-${idx}`);
+      const row   = document.getElementById(`stock-${idx}`);
+      if (!panel) return;
+      const isOpen = panel.classList.contains('open');
+      panel.classList.toggle('open', !isOpen);
+      icon.classList.toggle('open', !isOpen);
+      row.classList.toggle('expanded', !isOpen);
+    }
+
+    // ── Load data from API ────────────────────────────────────────────────────
+    async function loadData() {
+      try {
+        const res  = await fetch('/api/options/latest');
+        const json = await res.json();
+
+        // Update scan-running banner
+        if (json.scan_running) {
+          document.getElementById('scan-banner').style.display = '';
+        } else {
+          document.getElementById('scan-banner').style.display = 'none';
+        }
+
+        if (!json.available) {
+          showEmpty(json.message ?? 'No scan results yet.');
+          loadHistory();
+          return;
+        }
+
+        const d = json.data;
+        scanData = d;
+        const meta = d.scan_metadata ?? {};
+
+        // Toolbar meta
+        const ts = meta.timestamp ?? d.scanned_at ?? d.timestamp ?? null;
+        document.getElementById('scan-time').innerHTML =
+          ts ? `Scanned: <strong>${new Date(ts).toLocaleString()}</strong>` : 'Scanned: <strong>unknown</strong>';
+        document.getElementById('scan-age').innerHTML =
+          `Age: <strong class="${ageClass(json.age_minutes)}">${fmtAge(json.age_minutes)}</strong>`;
+        const fileEl = document.getElementById('scan-file');
+        fileEl.textContent = json.filename;
+        fileEl.style.display = '';
+
+        // Stats
+        const stocks  = d.top_stocks ?? d.stocks ?? d.results ?? d.candidates ?? [];
+        const scanned = meta.total_scanned ?? d.total_scanned ?? '—';
+        const passed  = meta.passed_gates  ?? d.passed_gates  ?? stocks.length;
+        const topScore = stocks.length ? Math.max(...stocks.map(s=>Number(s.score??0))) : '—';
+        const ivs = stocks.map(s => s.metrics?.iv_rank ?? s.iv_rank).filter(v=>v!=null);
+        const avgIv = ivs.length ? (ivs.reduce((a,b)=>a+b,0)/ivs.length).toFixed(0) : '—';
+
+        document.getElementById('stat-scanned').textContent  = scanned;
+        document.getElementById('stat-passed').textContent   = passed;
+        document.getElementById('stat-topscore').textContent = topScore !== '—' ? Number(topScore).toFixed(0) : '—';
+        document.getElementById('stat-avgiv').textContent    = avgIv;
+        document.getElementById('stats-row').style.display   = '';
+
+        // Table
+        document.getElementById('table-container').innerHTML = buildTable(stocks);
+
+        // Claude analysis — field is {raw, tokens, cost} object
+        const aiObj = d.claude_analysis ?? d.ai_analysis ?? d.analysis ?? null;
+        const aiText = typeof aiObj === 'string' ? aiObj : (aiObj?.raw ?? null);
+        const claudePanel = document.getElementById('claude-panel');
+        if (aiText && aiText.trim()) {
+          document.getElementById('claude-body').textContent = aiText;
+          claudePanel.style.display = '';
+        } else {
+          claudePanel.style.display = 'none';
+        }
+
+        loadHistory();
+      } catch (err) {
+        document.getElementById('table-container').innerHTML =
+          `<div class="loading" style="color:#f85149">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // ── Show empty state ──────────────────────────────────────────────────────
+    function showEmpty(msg) {
+      document.getElementById('scan-time').textContent      = 'No scan data';
+      document.getElementById('scan-age').textContent       = '';
+      document.getElementById('scan-file').style.display    = 'none';
+      document.getElementById('stats-row').style.display    = 'none';
+      document.getElementById('claude-panel').style.display = 'none';
+      document.getElementById('table-container').innerHTML  = `
+        <div class="empty-state">
+          <div class="empty-icon">&#128202;</div>
+          <h2>No Options Scan Results Yet</h2>
+          <p>${esc(msg)}</p>
+          <p>Click <strong>Run Scan Now</strong> above to start a scan (takes ~8–12 min).</p>
+        </div>`;
+    }
+
+    // ── Load scan history ─────────────────────────────────────────────────────
+    async function loadHistory() {
+      try {
+        const history = await fetch('/api/options/history').then(r=>r.json());
+        const histCard = document.getElementById('history-card');
+        const histList = document.getElementById('history-list');
+        if (!history?.length) { histCard.style.display='none'; return; }
+        histCard.style.display = '';
+        histList.innerHTML = history.map(h =>
+          `<div class="history-chip" title="${esc(h.filename)}">
+            ${new Date(h.scanned_at).toLocaleDateString()} ${new Date(h.scanned_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+          </div>`).join('');
+      } catch {
+        document.getElementById('history-card').style.display = 'none';
+      }
+    }
+
+    // ── Run Scan — calls API to start Python process ──────────────────────────
+    async function runScan() {
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      btn.textContent = 'Starting...';
+      try {
+        const res  = await fetch('/api/options/run-scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({telegram: true}) });
+        const json = await res.json();
+        if (json.ok) {
+          btn.textContent = '⏳ Scan Running...';
+          document.getElementById('scan-banner').style.display = '';
+          // Poll every 30s until new results appear
+          scanElapsed = 0;
+          elapsedTimer = setInterval(() => {
+            scanElapsed += 30;
+            document.getElementById('scan-elapsed').textContent = `(${Math.floor(scanElapsed/60)}m ${scanElapsed%60}s elapsed)`;
+          }, 30000);
+          scanPolling = setInterval(async () => {
+            const status = await fetch('/api/options/scan-status').then(r=>r.json());
+            if (!status.running) {
+              clearInterval(scanPolling);
+              clearInterval(elapsedTimer);
+              btn.disabled = false;
+              btn.textContent = 'Run Scan Now';
+              document.getElementById('scan-banner').style.display = 'none';
+              await loadData(); // show fresh results
+            }
+          }, 15000);
+        } else {
+          alert(json.message ?? 'Failed to start scan');
+          btn.disabled = false;
+          btn.textContent = 'Run Scan Now';
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Run Scan Now';
+      }
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    loadData();
+    setInterval(loadData, 60000);
+  </script>
+</body>
+</html>

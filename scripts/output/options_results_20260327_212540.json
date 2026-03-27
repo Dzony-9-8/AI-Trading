@@ -1,0 +1,126 @@
+{
+  "scan_metadata": {
+    "timestamp": "2026-03-27T21:25:40.080569",
+    "total_scanned": 1,
+    "passed_gates": 1,
+    "top_n": 1
+  },
+  "top_stocks": [
+    {
+      "ticker": "NVDA",
+      "company": "NVDA",
+      "sector": "Unknown",
+      "score": 53.8,
+      "score_breakdown": {
+        "volatility_edge": 1.7,
+        "liquidity": 16.1,
+        "earnings_safety": 15.0,
+        "sector_balance": 10.0,
+        "technical_setup": 11.0
+      },
+      "metrics": {
+        "spot_price": 167.52000427246094,
+        "atm_iv": 0.411,
+        "iv_rank": 15.1,
+        "iv_percentile": 52.6,
+        "hv20": 31.89,
+        "hv30": 34.42,
+        "dte": 34,
+        "expiration": "2026-05-01",
+        "days_to_earnings": 53,
+        "open_interest": 1288,
+        "bid_ask_pct": 0.67
+      },
+      "greeks": {
+        "delta": 0.4931,
+        "gamma": 0.018984,
+        "theta": -0.1335,
+        "vega": 0.2039
+      },
+      "flags": [],
+      "strategies": {
+        "bull_put_spread": {
+          "name": "Bull Put Spread",
+          "max_profit": 240.0,
+          "max_loss": 760.0,
+          "net_credit": 2.4,
+          "breakeven_lower": 157.6,
+          "breakeven_upper": 0.0,
+          "prob_of_profit": 0.687,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "bear_call_spread": {
+          "name": "Bear Call Spread",
+          "max_profit": 256.0,
+          "max_loss": 1244.0,
+          "net_credit": 2.56,
+          "breakeven_lower": 0.0,
+          "breakeven_upper": 182.56,
+          "prob_of_profit": 0.247,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "iron_condor": {
+          "name": "Iron Condor",
+          "max_profit": 496.0,
+          "max_loss": 748.0,
+          "net_credit": 4.96,
+          "breakeven_lower": 157.6,
+          "breakeven_upper": 182.56,
+          "prob_of_profit": 0.44,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "straddle": {
+          "name": "Straddle",
+          "max_profit": 99999,
+          "max_loss": 1700.0,
+          "net_credit": -17.0,
+          "breakeven_lower": 153.0,
+          "breakeven_upper": 187.0,
+          "prob_of_profit": 0.425,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        },
+        "strangle": {
+          "name": "Strangle",
+          "max_profit": 99999,
+          "max_loss": 628.0,
+          "net_credit": -6.28,
+          "breakeven_lower": 148.72,
+          "breakeven_upper": 191.28,
+          "prob_of_profit": 0.316,
+          "delta": 0.0,
+          "theta": 0.0,
+          "vega": 0.0,
+          "valid": true
+        }
+      },
+      "news": [],
+      "analyst": {
+        "consensus": "N/A",
+        "buy_count": 0,
+        "hold_count": 0,
+        "sell_count": 0,
+        "total_analysts": 0,
+        "price_target": 0.0
+      }
+    }
+  ],
+  "claude_analysis": {
+    "raw": "",
+    "tokens": 0,
+    "cost": 0.0
+  },
+  "eliminated_count": 0,
+  "eliminated_sample": []
+}

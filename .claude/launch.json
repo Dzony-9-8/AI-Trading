@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "LocalTrader — Dev",
+      "runtimeExecutable": "C:\\Users\\dzoni\\AppData\\Local\\nvm\\v20.20.2\\node.exe",
+      "runtimeArgs": ["node_modules/tsx/dist/cli.mjs", "src/main.ts"],
+      "port": 3000
+    },
+    {
+      "name": "LocalTrader — Production",
+      "runtimeExecutable": "C:\\Users\\dzoni\\AppData\\Local\\nvm\\v20.20.2\\node.exe",
+      "runtimeArgs": ["dist/main.js"],
+      "port": 3000
+    }
+  ]
+}
