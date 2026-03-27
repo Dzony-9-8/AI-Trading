@@ -2,6 +2,11 @@ node_modules/
 dist/
 .env
 data/*.db
+data/*.db-shm
+data/*.db-wal
 data/historical/
 logs/*.log
 STOP
+scripts/output/
+scripts/__pycache__/
+.claude/settings.local.json
