@@ -30,6 +30,7 @@ import type { OrderManager } from '../execution/order-manager';
 import type { TierChangeEvent } from '../survival/economics';
 import { reconcileOnStartup } from '../execution/fill-tracker';
 import { broadcast } from '../dashboard/ws-broadcaster';
+import { drainExternalSignals } from './external-signals';
 
 const STAGGER_DELAY_MS = 250; // Between symbol fetches
 
@@ -343,6 +344,54 @@ async function marketScanner(): Promise<void> {
     log.debug('marketScanner: bot is paused');
     return;
   }
+
+  // ── Process external signals (webhooks) ──────────────────────────────────
+  const extSignals = drainExternalSignals();
+  for (const sig of extSignals) {
+    try {
+      log.info(`[webhook] Processing ${sig.action} signal from ${sig.source}`, { symbol: sig.symbol, strategy: sig.strategy });
+
+      if (sig.action === 'enter_long') {
+        const balance = getBalance();
+        const ticker = await _exchange.getTicker(sig.symbol);
+        const size = (balance * 0.02) / ticker.ask;
+        const posId = await _orderManager.openPosition({
+          symbol:    sig.symbol,
+          side:      'buy',
+          size,
+          type:      'limit',
+          price:     ticker.ask * 1.001,
+          strategy:  sig.strategy,
+          reasoning: `External signal from ${sig.source}`,
+        });
+        if (posId !== null) {
+          sendAlert(alerts.tradeOpened(sig.symbol, sig.strategy, 'buy', ticker.ask, size, undefined, undefined, undefined));
+          broadcastMetrics();
+        }
+      } else if (sig.action === 'exit') {
+        const open = getOpenPositions().filter(p => p.symbol === sig.symbol);
+        for (const pos of open) {
+          const ticker = await _exchange.getTicker(sig.symbol);
+          const closed = await _orderManager.closePosition({
+            positionId:   pos.id,
+            symbol:       pos.symbol,
+            size:         pos.size,
+            currentPrice: ticker.last,
+            action:       'sell',
+            reasoning:    `External exit signal from ${sig.source}`,
+          });
+          if (closed) {
+            const pnl = (ticker.last - pos.entry_price) * pos.size;
+            sendAlert(alerts.tradeClosed(sig.symbol, sig.strategy, 'sell', ticker.last, pnl));
+            broadcastMetrics();
+          }
+        }
+      }
+    } catch (e) {
+      log.error('[webhook] Error processing external signal', { symbol: sig.symbol, error: (e as Error).message });
+    }
+  }
+  // ── End external signals ──────────────────────────────────────────────────
 
   for (const symbol of config.trading.symbols) {
     try {

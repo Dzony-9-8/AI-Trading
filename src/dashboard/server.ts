@@ -11,6 +11,8 @@ import controlRouter from './api/control';
 import candlesRouter from './api/candles';
 import optionsRouter from './api/options';
 import analyticsRouter from './api/analytics';
+import ibkrRouter from './api/ibkr';
+import webhookRouter from './api/webhook';
 import { attachWsServer } from './ws-broadcaster';
 
 export function startDashboard(): void {
@@ -30,6 +32,8 @@ export function startDashboard(): void {
   app.use('/api/candles', candlesRouter);
   app.use(optionsRouter);
   app.use('/api/analytics', analyticsRouter);
+  app.use('/api/ibkr', ibkrRouter);
+  app.use('/api/webhook', webhookRouter);
 
   // SPA fallback — serve index.html for known pages
   const pages = ['/', '/trades', '/risk', '/logs', '/chart', '/options', '/analytics'];

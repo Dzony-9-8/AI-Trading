@@ -4,12 +4,23 @@ import { getOpenPositions, getDb } from '../../data/db';
 const router = Router();
 
 router.get('/', (_req, res) => {
+  const FEE_RATE = 0.001; // 0.1% taker fee (Binance)
   const positions = getOpenPositions();
   const enriched = positions.map(p => {
     const currentPrice = p.current_price ?? p.entry_price;
     const pnl = (currentPrice - p.entry_price) * p.size;
     const pnlPct = ((currentPrice - p.entry_price) / p.entry_price) * 100;
-    return { ...p, pnl: parseFloat(pnl.toFixed(2)), pnlPct: parseFloat(pnlPct.toFixed(2)) };
+    const breakEven = parseFloat((p.entry_price * (1 + FEE_RATE)).toFixed(4));
+    const stopDistancePct = p.stop_loss
+      ? parseFloat((((currentPrice - p.stop_loss) / currentPrice) * 100).toFixed(2))
+      : null;
+    return {
+      ...p,
+      pnl: parseFloat(pnl.toFixed(2)),
+      pnlPct: parseFloat(pnlPct.toFixed(2)),
+      breakEven,
+      stopDistancePct,
+    };
   });
   res.json(enriched);
 });

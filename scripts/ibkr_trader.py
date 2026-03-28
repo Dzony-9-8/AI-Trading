@@ -9,6 +9,7 @@ Usage (standalone):
 """
 
 import json
+import math
 import time
 import argparse
 import logging
@@ -429,6 +430,95 @@ def get_positions() -> Dict:
         ib.disconnect()
 
 
+def compute_bs_greeks(spot: float, strike: float, right: str, expiry_str: str,
+                      iv: float = 0.30, r: float = 0.05) -> Dict:
+    """Compute Black-Scholes delta/theta/vega. Returns zeros on any failure."""
+    try:
+        from scipy.stats import norm
+        exp_dt = datetime.strptime(str(expiry_str)[:8], "%Y%m%d")
+        dte = max((exp_dt - datetime.now()).days, 0)
+        T = dte / 365.0
+        if T <= 0 or spot <= 0 or strike <= 0 or iv <= 0:
+            return {"delta": 0.0, "theta": 0.0, "vega": 0.0, "dte": dte}
+        d1 = (math.log(spot / strike) + (r + 0.5 * iv**2) * T) / (iv * math.sqrt(T))
+        d2 = d1 - iv * math.sqrt(T)
+        is_call = right.upper() == "C"
+        delta = norm.cdf(d1) if is_call else norm.cdf(d1) - 1.0
+        theta = (
+            -spot * norm.pdf(d1) * iv / (2 * math.sqrt(T))
+            - r * strike * math.exp(-r * T) * (norm.cdf(d2) if is_call else norm.cdf(-d2))
+        ) / 365.0
+        vega = spot * norm.pdf(d1) * math.sqrt(T) / 100.0
+        return {"delta": round(delta, 4), "theta": round(theta, 4),
+                "vega": round(vega, 4), "dte": dte}
+    except Exception as ex:
+        log.debug(f"Greeks computation failed: {ex}")
+        return {"delta": 0.0, "theta": 0.0, "vega": 0.0, "dte": 0}
+
+
+def get_positions_json() -> Dict:
+    """Fetch positions + compute Black-Scholes portfolio Greeks. Returns JSON-safe dict."""
+    try:
+        data = get_positions()
+        connected = True
+    except Exception as e:
+        return {"connected": False, "error": str(e), "positions": [],
+                "orders": [], "portfolio_greeks": {}, "has_options": False}
+
+    positions = data.get("positions", [])
+    orders    = data.get("orders", [])
+
+    # Fetch spot prices for option underlyings via yfinance (best-effort)
+    spot_prices: Dict[str, float] = {}
+    opt_tickers = list({p["symbol"] for p in positions if p.get("sec_type") == "OPT"})
+    if opt_tickers:
+        try:
+            import yfinance as yf
+            for tk in opt_tickers:
+                try:
+                    info = yf.Ticker(tk).fast_info
+                    spot_prices[tk] = float(getattr(info, "last_price", 0) or 0)
+                except Exception:
+                    spot_prices[tk] = 0.0
+        except ImportError:
+            pass
+
+    net_delta = 0.0
+    net_theta = 0.0
+    net_vega  = 0.0
+    min_dte   = 9999
+    enhanced  = []
+
+    for p in positions:
+        entry = dict(p)
+        if (p.get("sec_type") == "OPT"
+                and p.get("strike") and p.get("right") and p.get("expiry")):
+            spot = spot_prices.get(p["symbol"], 0.0)
+            if spot > 0:
+                g = compute_bs_greeks(spot, float(p["strike"]), p["right"], str(p["expiry"]))
+                qty = float(p.get("quantity", 0))
+                entry.update({"greeks": g, "spot": spot})
+                net_delta += g["delta"] * qty * 100
+                net_theta += g["theta"] * qty * 100
+                net_vega  += g["vega"]  * qty * 100
+                if 0 < g["dte"] < min_dte:
+                    min_dte = g["dte"]
+        enhanced.append(entry)
+
+    return {
+        "connected":  connected,
+        "positions":  enhanced,
+        "orders":     orders,
+        "has_options": any(p.get("sec_type") == "OPT" for p in positions),
+        "portfolio_greeks": {
+            "net_delta": round(net_delta, 2),
+            "net_theta": round(net_theta, 2),
+            "net_vega":  round(net_vega, 2),
+            "days_to_next_expiry": min_dte if min_dte < 9999 else None,
+        },
+    }
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -437,7 +527,13 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run",    action="store_true", help="Show orders but don't submit")
     parser.add_argument("--status",     action="store_true", help="Show open positions and pending orders")
     parser.add_argument("--cancel-all", action="store_true", help="Cancel all pending paper orders")
+    parser.add_argument("--status-json", action="store_true", help="Output status as JSON to stdout")
     args = parser.parse_args()
+
+    if args.status_json:
+        import json as _json
+        print(_json.dumps(get_positions_json()))
+        raise SystemExit(0)
 
     if args.status:
         data = get_positions()

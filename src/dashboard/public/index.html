@@ -6,33 +6,74 @@
   <title>LocalTrader — Overview</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding-bottom: 56px; }
     nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
     nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
     nav a:hover { text-decoration: underline; }
     nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
-    .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .card-value { font-size: 28px; font-weight: bold; color: #f0f6fc; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .card-value { font-size: 24px; font-weight: bold; color: #f0f6fc; }
     .card-value.green { color: #3fb950; }
     .card-value.red { color: #f85149; }
     .card-value.yellow { color: #d29922; }
-    .tier-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-    .tier-normal { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
-    .tier-cautious { background: #d2992233; color: #d29922; border: 1px solid #d29922; }
-    .tier-critical { background: #da363333; color: #f85149; border: 1px solid #da3633; }
-    .tier-stopped { background: #f8514933; color: #f85149; border: 1px solid #f85149; }
-    .paper-badge { background: #238636; color: #3fb950; border: 1px solid #238636; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-    .section-title { font-size: 14px; color: #8b949e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; padding: 8px 12px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 11px; text-transform: uppercase; }
-    td { padding: 10px 12px; border-top: 1px solid #21262d; }
-    tr:hover td { background: #161b22; }
+    .card-sub { font-size: 11px; color: #8b949e; margin-top: 4px; }
+    .tier-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+    .tier-normal { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb; }
+    .tier-cautious { background: #d2992222; color: #d29922; border: 1px solid #d29922; }
+    .tier-critical { background: #da363322; color: #f85149; border: 1px solid #da3633; }
+    .tier-stopped { background: #f8514922; color: #f85149; border: 1px solid #f85149; }
+    .paper-badge { background: #238636; color: #3fb950; border: 1px solid #238636; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+    .section-title { font-size: 12px; color: #8b949e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 7px 10px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 10px; text-transform: uppercase; }
+    td { padding: 9px 10px; border-top: 1px solid #21262d; }
+    tr:hover td { background: #1c2128; }
     .positive { color: #3fb950; }
     .negative { color: #f85149; }
-    .loading { color: #8b949e; text-align: center; padding: 32px; }
+    .loading { color: #8b949e; text-align: center; padding: 24px; }
+    /* Regime badges */
+    .regime { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+    .regime-trending { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .regime-ranging  { background: #d2992222; color: #d29922; border: 1px solid #d29922; }
+    .regime-volatile { background: #da363322; color: #f85149; border: 1px solid #da3633; }
+    .regime-unknown  { background: #30363d; color: #8b949e; border: 1px solid #30363d; }
+    /* Streak */
+    .streak-win  { color: #3fb950; font-weight: bold; }
+    .streak-loss { color: #f85149; font-weight: bold; }
+    /* AI Gauge */
+    .ai-gauge-track { background: #21262d; border-radius: 4px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .ai-gauge-fill  { height: 6px; border-radius: 4px; transition: width 0.3s; }
+    /* Stop distance warning */
+    .stop-near { color: #f85149; }
+    .stop-warn  { color: #d29922; }
+    /* Control bar */
+    #control-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #161b22; border-top: 1px solid #30363d; padding: 10px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; font-size: 13px; }
+    #ctrl-status { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; }
+    .ctrl-running  { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .ctrl-paused   { background: #d2992222; color: #d29922; border: 1px solid #d29922; }
+    .ctrl-stopped  { background: #f8514922; color: #f85149; border: 1px solid #f85149; }
+    .ctrl-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; background: transparent; }
+    .btn-pause  { border-color: #d29922; color: #d29922; }
+    .btn-pause:hover  { background: #d2992222; }
+    .btn-resume { border-color: #3fb950; color: #3fb950; display: none; }
+    .btn-resume:hover { background: #23863622; }
+    .btn-stop   { border-color: #f85149; color: #f85149; }
+    .btn-stop:hover   { background: #f8514922; }
+    #ctrl-spacer { flex: 1; }
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #161b22; border: 1px solid #f85149; border-radius: 8px; padding: 24px; max-width: 360px; width: 90%; }
+    .modal h3 { color: #f85149; margin-bottom: 8px; }
+    .modal p { font-size: 13px; color: #8b949e; margin-bottom: 16px; }
+    .modal input { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; font-family: 'Courier New', monospace; margin-bottom: 12px; }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button { flex: 1; padding: 8px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .btn-cancel { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; }
+    .btn-confirm-stop { background: #da3633; border: 1px solid #f85149; color: #f0f6fc; }
   </style>
 </head>
 <body>
@@ -47,25 +88,130 @@
     <a href="/analytics">Analytics</a>
   </nav>
   <div class="container">
-    <div id="paper-banner" style="display:none; margin-bottom:16px;">
-      <span class="paper-badge">📄 PAPER MODE — No real money at risk</span>
+    <div id="paper-banner" style="display:none; margin-bottom:14px;">
+      <span class="paper-badge">PAPER MODE — No real money at risk</span>
     </div>
 
+    <!-- Row 1: Core KPIs -->
     <div class="grid" id="stats-grid">
-      <div class="card"><div class="card-label">Balance (USDT)</div><div class="card-value" id="balance">—</div></div>
-      <div class="card"><div class="card-label">Daily P&L</div><div class="card-value" id="daily-pnl">—</div></div>
-      <div class="card"><div class="card-label">Drawdown</div><div class="card-value" id="drawdown">—</div></div>
-      <div class="card"><div class="card-label">Open Positions</div><div class="card-value" id="open-pos">—</div></div>
-      <div class="card"><div class="card-label">Survival Tier</div><div id="tier-cell" style="margin-top:8px;">—</div></div>
-      <div class="card"><div class="card-label">Today's Trades</div><div class="card-value" id="today-trades">—</div></div>
+      <div class="card">
+        <div class="card-label">Balance (USDT)</div>
+        <div class="card-value" id="balance">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Daily P&amp;L</div>
+        <div class="card-value" id="daily-pnl">—</div>
+        <div class="card-sub" id="daily-pnl-usd"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Week P&amp;L</div>
+        <div class="card-value" id="week-pnl">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Month P&amp;L</div>
+        <div class="card-value" id="month-pnl">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Drawdown</div>
+        <div class="card-value" id="drawdown">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Open Positions</div>
+        <div class="card-value" id="open-pos">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Survival Tier</div>
+        <div id="tier-cell" style="margin-top:6px;">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Today Trades</div>
+        <div class="card-value" id="today-trades">—</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Win Streak</div>
+        <div class="card-value" id="streak">—</div>
+        <div class="card-sub" id="max-losses"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">AI Spend Today</div>
+        <div class="card-value" id="ai-spend">—</div>
+        <div class="ai-gauge-track"><div class="ai-gauge-fill" id="ai-gauge-fill"></div></div>
+        <div class="card-sub" id="ai-budget-label"></div>
+      </div>
     </div>
 
+    <!-- Active Symbols / Regime -->
+    <div class="card" style="margin-bottom:16px;" id="regime-card">
+      <div class="section-title">Active Symbols — Market Regime</div>
+      <div id="regime-body" style="display:flex; flex-wrap:wrap; gap:12px; padding:4px 0;">
+        <span style="color:#8b949e; font-size:12px;">Loading...</span>
+      </div>
+    </div>
+
+    <!-- IBKR Greeks strip (shown only when Gateway is running with options positions) -->
+    <div id="greeks-strip" style="display:none; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; margin-bottom:16px;">
+      <div class="section-title" style="margin-bottom:12px;">IBKR OPTIONS — PORTFOLIO GREEKS</div>
+      <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:center;">
+        <div>
+          <div class="card-label">Net Delta</div>
+          <div class="card-value" id="gk-delta" style="font-size:20px;">—</div>
+        </div>
+        <div>
+          <div class="card-label">Net Theta / Day</div>
+          <div class="card-value" id="gk-theta" style="font-size:20px;">—</div>
+        </div>
+        <div>
+          <div class="card-label">Net Vega</div>
+          <div class="card-value" id="gk-vega" style="font-size:20px;">—</div>
+        </div>
+        <div>
+          <div class="card-label">Days to Next Expiry</div>
+          <div class="card-value" id="gk-dte" style="font-size:20px;">—</div>
+        </div>
+        <div>
+          <div class="card-label">IBKR Positions</div>
+          <div class="card-value blue" id="gk-count" style="font-size:20px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open Positions -->
     <div class="card" style="margin-bottom:16px;">
       <div class="section-title">Open Positions</div>
-      <table>
-        <thead><tr><th>Symbol</th><th>Strategy</th><th>Entry</th><th>Current</th><th>Size</th><th>P&L</th><th>Stop Loss</th></tr></thead>
-        <tbody id="positions-body"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
-      </table>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th><th>Strategy</th><th>Entry</th><th>Break-Even</th>
+              <th>Current</th><th>Size</th><th>P&amp;L</th>
+              <th>Stop Loss</th><th>Stop Dist</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control Bar -->
+  <div id="control-bar">
+    <span id="ctrl-status" class="ctrl-running">RUNNING</span>
+    <button class="ctrl-btn btn-pause"  id="btn-pause"  onclick="pauseBot()">Pause 1h</button>
+    <button class="ctrl-btn btn-resume" id="btn-resume" onclick="resumeBot()">Resume</button>
+    <span id="ctrl-spacer"></span>
+    <button class="ctrl-btn btn-stop" onclick="openStopModal()">Emergency Stop</button>
+  </div>
+
+  <!-- Stop Modal -->
+  <div class="modal-overlay" id="stop-modal">
+    <div class="modal">
+      <h3>Confirm Emergency Stop</h3>
+      <p>This creates a STOP file and triggers emergency liquidation of all positions.</p>
+      <input type="password" id="stop-token" placeholder="Dashboard token" />
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeStopModal()">Cancel</button>
+        <button class="btn-confirm-stop" onclick="confirmStop()">STOP BOT</button>
+      </div>
     </div>
   </div>
 
@@ -73,32 +219,97 @@
     let wsConnected = false;
     let pollInterval = null;
 
+    function fmt(n, prefix='$') { return n >= 0 ? prefix + n.toFixed(2) : '-' + prefix + Math.abs(n).toFixed(2); }
+    function cls(n) { return n >= 0 ? 'green' : 'red'; }
+
     function applyMetrics(data) {
       document.getElementById('balance').textContent = '$' + data.balance.toFixed(2);
-      const pnl = data.dailyPnLPct;
+
       const pnlEl = document.getElementById('daily-pnl');
-      pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + '%';
-      pnlEl.className = 'card-value ' + (pnl >= 0 ? 'green' : 'red');
+      pnlEl.textContent = (data.dailyPnLPct >= 0 ? '+' : '') + data.dailyPnLPct.toFixed(2) + '%';
+      pnlEl.className = 'card-value ' + cls(data.dailyPnLPct);
+      document.getElementById('daily-pnl-usd').textContent = fmt(data.todayPnL);
+
+      const weekEl = document.getElementById('week-pnl');
+      weekEl.textContent = fmt(data.weekPnL ?? 0);
+      weekEl.className = 'card-value ' + cls(data.weekPnL ?? 0);
+
+      const monthEl = document.getElementById('month-pnl');
+      monthEl.textContent = fmt(data.monthPnL ?? 0);
+      monthEl.className = 'card-value ' + cls(data.monthPnL ?? 0);
+
       document.getElementById('drawdown').textContent = '-' + data.drawdownFromPeakPct.toFixed(2) + '%';
       document.getElementById('open-pos').textContent = data.openPositions;
-      const tierEl = document.getElementById('tier-cell');
-      tierEl.innerHTML = `<span class="tier-badge tier-${data.tier}">${data.tier}</span>`;
+      document.getElementById('tier-cell').innerHTML = `<span class="tier-badge tier-${data.tier}">${data.tier}</span>`;
+      document.getElementById('today-trades').textContent = data.todayTrades ?? '—';
+
       if (data.paper) document.getElementById('paper-banner').style.display = 'block';
+
+      // Streak
+      const streakEl = document.getElementById('streak');
+      if (data.streakType && data.streakType !== 'none' && data.currentStreak > 0) {
+        streakEl.textContent = data.currentStreak + ' ' + (data.streakType === 'win' ? 'W' : 'L');
+        streakEl.className = 'card-value ' + (data.streakType === 'win' ? 'streak-win' : 'streak-loss');
+      } else {
+        streakEl.textContent = '—';
+        streakEl.className = 'card-value';
+      }
+      if (data.maxConsecLosses) {
+        document.getElementById('max-losses').textContent = 'Max consec losses: ' + data.maxConsecLosses;
+      }
+
+      // AI spend gauge
+      const spend  = data.aiSpendToday ?? 0;
+      const budget = data.aiDailyBudget ?? 1.0;
+      const pct    = Math.min((spend / budget) * 100, 100);
+      document.getElementById('ai-spend').textContent = '$' + spend.toFixed(4);
+      const fill = document.getElementById('ai-gauge-fill');
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 80 ? '#f85149' : pct > 50 ? '#d29922' : '#3fb950';
+      document.getElementById('ai-budget-label').textContent = `${pct.toFixed(0)}% of $${budget.toFixed(2)} budget`;
+
+      // Regime badges
+      const regimes = data.marketRegimes ?? {};
+      const strategies = data.activeStrategies ?? {};
+      const regimeBody = document.getElementById('regime-body');
+      const symbols = Object.keys(regimes);
+      if (symbols.length > 0) {
+        regimeBody.innerHTML = symbols.map(sym => {
+          const r = regimes[sym] || 'unknown';
+          const s = strategies[sym] || '—';
+          return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#21262d;border-radius:6px;font-size:12px;">
+            <span style="color:#f0f6fc;font-weight:bold;">${sym}</span>
+            <span class="regime regime-${r}">${r}</span>
+            <span style="color:#8b949e;">${s}</span>
+          </div>`;
+        }).join('');
+      } else {
+        regimeBody.innerHTML = '<span style="color:#8b949e;font-size:12px;">Bot not running</span>';
+      }
     }
 
     function applyPositions(data) {
       const tbody = document.getElementById('positions-body');
-      if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="loading">No open positions</td></tr>'; return; }
-      tbody.innerHTML = data.map(p => `
-        <tr>
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading">No open positions</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(p => {
+        const cur = p.current_price ?? p.entry_price;
+        const stopDist = p.stopDistancePct;
+        const stopCls = stopDist !== null ? (stopDist < 1 ? 'stop-near' : stopDist < 3 ? 'stop-warn' : '') : '';
+        return `<tr>
           <td>${p.symbol}</td>
           <td>${p.strategy}</td>
-          <td>$${p.entry_price.toFixed(2)}</td>
-          <td>$${(p.current_price ?? p.entry_price).toFixed(2)}</td>
+          <td>$${p.entry_price.toFixed(4)}</td>
+          <td style="color:#8b949e;">$${p.breakEven ? p.breakEven.toFixed(4) : '—'}</td>
+          <td>$${cur.toFixed(4)}</td>
           <td>${p.size.toFixed(4)}</td>
           <td class="${p.pnl >= 0 ? 'positive' : 'negative'}">${p.pnl >= 0 ? '+' : ''}$${p.pnl.toFixed(2)} (${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(2)}%)</td>
-          <td>${p.stop_loss ? '$' + p.stop_loss.toFixed(2) : '—'}</td>
-        </tr>`).join('');
+          <td>${p.stop_loss ? '$' + p.stop_loss.toFixed(4) : '—'}</td>
+          <td class="${stopCls}">${stopDist !== null ? stopDist.toFixed(1) + '%' : '—'}</td>
+        </tr>`;
+      }).join('');
     }
 
     async function fetchAll() {
@@ -108,56 +319,118 @@
       ]);
       applyMetrics(metrics);
       applyPositions(positions);
-      if (!metrics.todayTrades === undefined) return; // guard
-      document.getElementById('today-trades').textContent = metrics.todayTrades ?? '—';
     }
 
+    // ── Control bar ─────────────────────────────────────────────────
+    async function updateControlStatus() {
+      try {
+        const s = await fetch('/api/control/status').then(r => r.json());
+        const el = document.getElementById('ctrl-status');
+        const pauseBtn  = document.getElementById('btn-pause');
+        const resumeBtn = document.getElementById('btn-resume');
+        if (s.stopFileExists) {
+          el.textContent = 'STOPPED'; el.className = 'ctrl-stopped';
+          pauseBtn.style.display = 'none'; resumeBtn.style.display = 'none';
+        } else if (s.paused) {
+          el.textContent = 'PAUSED'; el.className = 'ctrl-paused';
+          pauseBtn.style.display = 'none'; resumeBtn.style.display = 'inline-block';
+        } else {
+          el.textContent = 'RUNNING'; el.className = 'ctrl-running';
+          pauseBtn.style.display = 'inline-block'; resumeBtn.style.display = 'none';
+        }
+      } catch {}
+    }
+
+    async function pauseBot() {
+      const token = prompt('Dashboard token:');
+      if (!token) return;
+      await fetch('/api/control', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'pause', minutes: 60 }),
+      });
+      updateControlStatus();
+    }
+
+    async function resumeBot() {
+      const token = prompt('Dashboard token:');
+      if (!token) return;
+      await fetch('/api/control', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'resume' }),
+      });
+      updateControlStatus();
+    }
+
+    function openStopModal()  { document.getElementById('stop-modal').classList.add('open'); }
+    function closeStopModal() { document.getElementById('stop-modal').classList.remove('open'); document.getElementById('stop-token').value = ''; }
+
+    async function confirmStop() {
+      const token = document.getElementById('stop-token').value;
+      if (!token) return;
+      await fetch('/api/control', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'stop' }),
+      });
+      closeStopModal();
+      updateControlStatus();
+    }
+
+    // ── WebSocket ────────────────────────────────────────────────────
     function startPolling() {
       if (pollInterval) return;
       fetchAll();
-      pollInterval = setInterval(fetchAll, 5000);
+      updateControlStatus();
+      pollInterval = setInterval(() => { fetchAll(); updateControlStatus(); }, 5000);
     }
 
     function stopPolling() {
       if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
     }
 
-    // ── WebSocket ──────────────────────────────────────────────────────────────
     function connectWs() {
       const ws = new WebSocket(`ws://${location.host}/ws`);
-
-      ws.onopen = () => {
-        wsConnected = true;
-        stopPolling();   // WS is live — no need to poll
-        fetchAll();      // initial load
-      };
-
+      ws.onopen = () => { wsConnected = true; stopPolling(); fetchAll(); updateControlStatus(); };
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data);
-          if (msg.type === 'metrics')    { applyMetrics(msg.data); fetchAll(); } // todayTrades not in WS payload
+          if (msg.type === 'metrics')    { fetchAll(); }
           if (msg.type === 'positions')  { applyPositions(msg.data); }
-          if (msg.type === 'tier_change') {
-            const tierEl = document.getElementById('tier-cell');
-            tierEl.innerHTML = `<span class="tier-badge tier-${msg.data.to}">${msg.data.to}</span>`;
-          }
-          if (msg.type === 'trade')      { fetchAll(); } // trade event — refresh everything
+          if (msg.type === 'tier_change') { fetchAll(); }
+          if (msg.type === 'trade')      { fetchAll(); }
         } catch {}
       };
-
-      ws.onclose = () => {
-        wsConnected = false;
-        startPolling(); // fallback to polling until WS reconnects
-        setTimeout(connectWs, 5000); // attempt reconnect
-      };
-
+      ws.onclose = () => { wsConnected = false; startPolling(); setTimeout(connectWs, 5000); };
       ws.onerror = () => { ws.close(); };
     }
 
-    // Start — try WebSocket first, polling is the fallback
+    async function loadGreeks() {
+      try {
+        const d = await fetch('/api/ibkr/positions').then(r => r.json());
+        const strip = document.getElementById('greeks-strip');
+        if (!d.connected || !d.has_options) { strip.style.display = 'none'; return; }
+        strip.style.display = 'block';
+        const g = d.portfolio_greeks || {};
+        const deltaEl = document.getElementById('gk-delta');
+        const v = g.net_delta ?? 0;
+        deltaEl.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
+        deltaEl.className = 'card-value ' + (v > 0 ? 'green' : v < 0 ? 'red' : '');
+        const thetaEl = document.getElementById('gk-theta');
+        const t = g.net_theta ?? 0;
+        thetaEl.textContent = '$' + t.toFixed(2);
+        thetaEl.className = 'card-value ' + (t >= 0 ? 'green' : 'red');
+        document.getElementById('gk-vega').textContent = (g.net_vega ?? 0).toFixed(2);
+        document.getElementById('gk-dte').textContent = g.days_to_next_expiry != null ? g.days_to_next_expiry + 'd' : '—';
+        document.getElementById('gk-count').textContent = d.positions.filter(p => p.sec_type === 'OPT').length.toString();
+      } catch (e) {
+        document.getElementById('greeks-strip').style.display = 'none';
+      }
+    }
+
     connectWs();
-    // Also start polling immediately so data appears fast on first load
     fetchAll();
+    updateControlStatus();
+    loadGreeks();
+    setInterval(loadGreeks, 60000);
   </script>
 </body>
 </html>

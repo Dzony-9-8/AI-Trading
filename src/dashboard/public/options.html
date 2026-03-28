@@ -6,7 +6,7 @@
   <title>LocalTrader — Options</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding-bottom: 56px; }
     nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
     nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
     nav a:hover { text-decoration: underline; }
@@ -509,6 +509,44 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     loadData();
     setInterval(loadData, 60000);
+
+    async function updateControlStatus() {
+      try {
+        const s = await fetch('/api/control/status').then(r => r.json());
+        const el = document.getElementById('ctrl-status');
+        const pb = document.getElementById('btn-pause');
+        const rb = document.getElementById('btn-resume');
+        if (s.stopFileExists) { el.textContent='STOPPED'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#f8514922;color:#f85149;border:1px solid #f85149;'; pb.style.display='none'; rb.style.display='none'; }
+        else if (s.paused)    { el.textContent='PAUSED';  el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#d2992222;color:#d29922;border:1px solid #d29922;'; pb.style.display='none'; rb.style.display='inline-block'; }
+        else                  { el.textContent='RUNNING'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;'; pb.style.display='inline-block'; rb.style.display='none'; }
+      } catch {}
+    }
+    async function pauseBot()  { const t=prompt('Dashboard token:'); if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'pause',minutes:60})}); updateControlStatus(); }
+    async function resumeBot() { const t=prompt('Dashboard token:'); if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'resume'})}); updateControlStatus(); }
+    function openStopModal()  { const m=document.getElementById('stop-modal'); m.style.display='flex'; }
+    function closeStopModal() { document.getElementById('stop-modal').style.display='none'; document.getElementById('stop-token').value=''; }
+    async function confirmStop() { const t=document.getElementById('stop-token').value; if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'stop'})}); closeStopModal(); updateControlStatus(); }
+    updateControlStatus();
+    setInterval(updateControlStatus, 10000);
   </script>
+
+  <div id="control-bar" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;padding:10px 24px;display:flex;align-items:center;gap:12px;z-index:100;font-size:13px;">
+    <span id="ctrl-status" style="padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;">RUNNING</span>
+    <button id="btn-pause" onclick="pauseBot()" style="padding:5px 14px;border-radius:6px;border:1px solid #d29922;color:#d29922;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Pause 1h</button>
+    <button id="btn-resume" onclick="resumeBot()" style="display:none;padding:5px 14px;border-radius:6px;border:1px solid #3fb950;color:#3fb950;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Resume</button>
+    <span style="flex:1"></span>
+    <button onclick="openStopModal()" style="padding:5px 14px;border-radius:6px;border:1px solid #f85149;color:#f85149;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Emergency Stop</button>
+  </div>
+  <div id="stop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#161b22;border:1px solid #f85149;border-radius:8px;padding:24px;max-width:360px;width:90%;">
+      <h3 style="color:#f85149;margin-bottom:8px;">Confirm Emergency Stop</h3>
+      <p style="font-size:13px;color:#8b949e;margin-bottom:16px;">Creates STOP file, triggers emergency liquidation.</p>
+      <input type="password" id="stop-token" placeholder="Dashboard token" style="width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;font-family:'Courier New',monospace;margin-bottom:12px;" />
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeStopModal()" style="flex:1;padding:8px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;font-family:'Courier New',monospace;">Cancel</button>
+        <button onclick="confirmStop()" style="flex:1;padding:8px;background:#da3633;border:1px solid #f85149;border-radius:4px;color:#f0f6fc;cursor:pointer;font-family:'Courier New',monospace;">STOP BOT</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

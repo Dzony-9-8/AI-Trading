@@ -12,3 +12,4 @@ tqdm>=4.60.0
 plotly>=5.0.0
 diskcache>=5.6.0
 python-dotenv>=1.0.0
+ib_insync>=0.9.86

@@ -6,7 +6,7 @@
   <title>LocalTrader — Logs</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 56px; }
     nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; flex-shrink: 0; }
     nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
     nav a:hover { text-decoration: underline; }
@@ -184,6 +184,35 @@
     setInterval(fetchLogs, 3000);
     setInterval(checkStatus, 5000);
     checkStatus();
+
+    function updateFooterStatus() {
+      try {
+        const el = document.getElementById('footer-status');
+        const dot = document.getElementById('status-dot');
+        const txt = document.getElementById('status-text');
+        if (!el) return;
+        // Mirror the toolbar status-dot state into footer badge
+        if (txt.textContent === 'STOPPED') { el.textContent='STOPPED'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#f8514922;color:#f85149;border:1px solid #f85149;'; }
+        else if (txt.textContent === 'Paused') { el.textContent='PAUSED'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#d2992222;color:#d29922;border:1px solid #d29922;'; }
+        else { el.textContent='RUNNING'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;'; }
+      } catch {}
+    }
+    // Patch checkStatus to also update footer
+    const _origCheckStatus = checkStatus;
+    async function checkStatusWithFooter() {
+      await _origCheckStatus();
+      updateFooterStatus();
+    }
+    setInterval(updateFooterStatus, 5000);
+    updateFooterStatus();
   </script>
+
+  <div id="control-bar" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;padding:10px 24px;display:flex;align-items:center;gap:12px;z-index:100;font-size:13px;">
+    <span id="footer-status" style="padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;">RUNNING</span>
+    <button onclick="pauseBot()" style="padding:5px 14px;border-radius:6px;border:1px solid #d29922;color:#d29922;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Pause 1h</button>
+    <button onclick="resumeBot()" style="padding:5px 14px;border-radius:6px;border:1px solid #3fb950;color:#3fb950;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Resume</button>
+    <span style="flex:1"></span>
+    <button onclick="showStopModal()" style="padding:5px 14px;border-radius:6px;border:1px solid #f85149;color:#f85149;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Emergency Stop</button>
+  </div>
 </body>
 </html>

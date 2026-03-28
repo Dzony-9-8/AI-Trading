@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { log } from '../logger';
 import { getCachedOHLCV } from '../data/db';
 import { computeIndicators } from '../analysis/indicators';
@@ -147,4 +149,25 @@ export async function runBacktest(params: BacktestParams): Promise<void> {
   const durationDays = (ohlcv[ohlcv.length - 1].timestamp - ohlcv[MIN_CANDLES].timestamp) / 86_400_000;
   const metrics = computeMetrics(completedTrades, startingBalance, durationDays);
   printMetrics(metrics);
+
+  // Save backtest results for dashboard viewer
+  try {
+    let bal = startingBalance;
+    const equityCurve = completedTrades.map(t => {
+      bal += t.pnl;
+      return { timestamp: t.exitTime, balance: parseFloat(bal.toFixed(2)) };
+    });
+    const results = {
+      ...metrics,
+      symbol,
+      timeframe,
+      runAt: new Date().toISOString(),
+      equityCurve,
+    };
+    const outPath = path.join(process.cwd(), 'data', 'backtest_results.json');
+    fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
+    log.info('Backtest results saved', { path: outPath });
+  } catch (saveErr) {
+    log.warn('Could not save backtest results', { error: (saveErr as Error).message });
+  }
 }

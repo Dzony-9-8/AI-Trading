@@ -11,16 +11,37 @@ router.get('/', (req, res) => {
 
   const db = getDb();
   const baseQuery = symbol
-    ? `SELECT t.*, p.symbol, p.strategy FROM trades t
+    ? `SELECT t.*, p.symbol, p.strategy, p.entry_price as pos_entry, p.stop_loss as pos_stop
+       FROM trades t
        LEFT JOIN positions p ON t.position_id = p.id
        WHERE p.symbol = ?
        ORDER BY t.timestamp DESC LIMIT ? OFFSET ?`
-    : `SELECT t.*, p.symbol, p.strategy FROM trades t
+    : `SELECT t.*, p.symbol, p.strategy, p.entry_price as pos_entry, p.stop_loss as pos_stop
+       FROM trades t
        LEFT JOIN positions p ON t.position_id = p.id
        ORDER BY t.timestamp DESC LIMIT ? OFFSET ?`;
 
   const params = symbol ? [symbol, limit, offset] : [limit, offset];
-  const trades = db.prepare(baseQuery).all(...params);
+  const rawTrades = db.prepare(baseQuery).all(...params) as {
+    pnl: number | null;
+    pos_entry: number | null;
+    pos_stop: number | null;
+    size: number | null;
+    [key: string]: unknown;
+  }[];
+
+  // Compute R-multiple for closed trades: pnl / initial_risk
+  // initial_risk = (entry_price - stop_loss) * size
+  const trades = rawTrades.map(t => {
+    let rMultiple: number | null = null;
+    if (t.pnl !== null && t.pos_entry !== null && t.pos_stop !== null && t.size !== null) {
+      const initialRisk = Math.abs((t.pos_entry - t.pos_stop) * t.size);
+      if (initialRisk > 0) {
+        rMultiple = parseFloat((t.pnl / initialRisk).toFixed(2));
+      }
+    }
+    return { ...t, rMultiple };
+  });
 
   const countQuery = symbol
     ? `SELECT COUNT(*) as total FROM trades t LEFT JOIN positions p ON t.position_id = p.id WHERE p.symbol = ?`

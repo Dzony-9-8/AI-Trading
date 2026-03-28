@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding-bottom: 56px; }
     nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
     nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
     nav a:hover { text-decoration: underline; }
@@ -117,6 +117,37 @@
         <div id="heatmapContent"><div class="empty-state">No trade data yet</div></div>
       </div>
     </div>
+
+    <!-- Rolling Win Rate Chart -->
+    <div class="card" style="margin-bottom:16px;margin-top:16px;">
+      <div style="font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Strategy Health — Rolling 20-Trade Win Rate</div>
+      <canvas id="rolling-chart" height="120"></canvas>
+      <div style="font-size:11px;color:#8b949e;margin-top:8px;">Green zone = above 50% win rate. Downtrend = strategy degrading.</div>
+    </div>
+
+    <!-- Backtest Results Panel -->
+    <div id="backtest-panel" style="margin-top:16px; display:none;">
+      <div class="chart-card full">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="chart-title" style="margin-bottom:0;">Last Backtest Run</div>
+          <div id="bt-meta" style="font-size:11px;color:#8b949e;"></div>
+        </div>
+        <!-- Key stats -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value" id="bt-return">—</div></div>
+          <div class="stat-card"><div class="stat-label">Annualized</div><div class="stat-value" id="bt-annual">—</div></div>
+          <div class="stat-card"><div class="stat-label">Sharpe</div><div class="stat-value" id="bt-sharpe">—</div></div>
+          <div class="stat-card"><div class="stat-label">Sortino</div><div class="stat-value" id="bt-sortino">—</div></div>
+          <div class="stat-card"><div class="stat-label">Max Drawdown</div><div class="stat-value red" id="bt-dd">—</div></div>
+          <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value" id="bt-wr">—</div></div>
+          <div class="stat-card"><div class="stat-label">Profit Factor</div><div class="stat-value" id="bt-pf">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value blue" id="bt-trades">—</div></div>
+        </div>
+        <!-- Equity curve -->
+        <div style="font-size:11px;color:#8b949e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Backtest Equity Curve</div>
+        <div style="position:relative;height:180px;"><canvas id="bt-equity-chart"></canvas></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -202,10 +233,14 @@
       const entries = Object.entries(byStrategy);
       if (entries.length === 0) { el.innerHTML = '<div class="empty-state">No trade data yet</div>'; return; }
 
-      let html = '<table class="strategy-table"><thead><tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>P&L</th></tr></thead><tbody>';
+      let html = '<table class="strategy-table"><thead><tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>P&L</th><th>Profit Factor</th><th>Avg Duration</th></tr></thead><tbody>';
       for (const [name, s] of entries.sort((a, b) => b[1].pnl - a[1].pnl)) {
         const wr = s.trades > 0 ? (s.wins / s.trades * 100) : 0;
         const pnlStr = s.pnl >= 0 ? `<span class="stat-value green" style="font-size:13px">+$${fmt(s.pnl)}</span>` : `<span class="stat-value red" style="font-size:13px">-$${fmt(Math.abs(s.pnl))}</span>`;
+        const pf = s.profitFactor;
+        const pfStr = pf != null ? `<span style="color:${pf >= 1.5 ? '#3fb950' : pf >= 1 ? '#d29922' : '#f85149'}">${fmt(pf)}</span>` : '—';
+        const dur = s.avgDurationMinutes;
+        const durStr = dur != null ? (dur >= 60 ? (dur/60).toFixed(1) + 'h' : Math.round(dur) + 'm') : '—';
         html += `<tr>
           <td>${name}</td>
           <td>${s.trades}</td>
@@ -216,6 +251,8 @@
             </div>
           </td>
           <td>${pnlStr}</td>
+          <td>${pfStr}</td>
+          <td style="color:#8b949e">${durStr}</td>
         </tr>`;
       }
       html += '</tbody></table>';
@@ -334,6 +371,178 @@
 
     load();
     setInterval(load, 30000); // Refresh every 30s
+
+    async function loadRollingWinRate() {
+      try {
+        const data = await fetch('/api/analytics/rolling-winrate').then(r => r.json());
+        if (!data.data || data.data.length < 2) return;
+        const canvas = document.getElementById('rolling-chart');
+        const ctx = canvas.getContext('2d');
+        const points = data.data;
+        const w = canvas.width = canvas.offsetWidth;
+        const h = 120;
+        canvas.height = h;
+        ctx.clearRect(0, 0, w, h);
+
+        const minV = 0, maxV = 100;
+        const padL = 36, padR = 10, padT = 10, padB = 20;
+        const scaleX = i => padL + (i / (points.length - 1)) * (w - padL - padR);
+        const scaleY = v => padT + (1 - (v - minV) / (maxV - minV)) * (h - padT - padB);
+
+        // Green fill above 50
+        const mid50 = scaleY(50);
+        ctx.beginPath();
+        ctx.moveTo(scaleX(0), scaleY(points[0].winRate));
+        points.forEach((p, i) => ctx.lineTo(scaleX(i), scaleY(p.winRate)));
+        ctx.lineTo(scaleX(points.length - 1), h - padB);
+        ctx.lineTo(scaleX(0), h - padB);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(63,185,80,0.15)';
+        ctx.fill();
+
+        // 50% reference line
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#30363d';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, mid50); ctx.lineTo(w - padR, mid50); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Win rate line
+        ctx.beginPath();
+        ctx.moveTo(scaleX(0), scaleY(points[0].winRate));
+        points.forEach((p, i) => ctx.lineTo(scaleX(i), scaleY(p.winRate)));
+        ctx.strokeStyle = '#58a6ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Y axis labels
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '10px Courier New';
+        ctx.textAlign = 'right';
+        [0, 25, 50, 75, 100].forEach(v => {
+          ctx.fillText(v + '%', padL - 4, scaleY(v) + 3);
+        });
+
+        // Last value
+        const last = points[points.length - 1];
+        ctx.fillStyle = last.winRate >= 50 ? '#3fb950' : '#f85149';
+        ctx.font = 'bold 11px Courier New';
+        ctx.textAlign = 'left';
+        ctx.fillText(last.winRate.toFixed(1) + '%', scaleX(points.length - 1) - 30, scaleY(last.winRate) - 6);
+      } catch(e) { console.warn('Rolling win rate:', e); }
+    }
+    loadRollingWinRate();
+    setInterval(loadRollingWinRate, 30000);
+
+    let btChart;
+    async function loadBacktest() {
+      try {
+        const d = await fetch('/api/analytics/backtest').then(r => r.json());
+        if (!d.available) return;
+        document.getElementById('backtest-panel').style.display = 'block';
+        document.getElementById('bt-meta').textContent = `${d.symbol || ''} ${d.timeframe || ''} · Run: ${d.runAt ? new Date(d.runAt).toLocaleDateString() : ''}`;
+
+        const pct = v => (v * 100).toFixed(1) + '%';
+
+        const retEl = document.getElementById('bt-return');
+        retEl.textContent = pct(d.totalReturnPct ?? 0);
+        retEl.className = 'stat-value ' + colorClass(d.totalReturnPct);
+
+        const annEl = document.getElementById('bt-annual');
+        annEl.textContent = pct(d.annualizedReturnPct ?? 0);
+        annEl.className = 'stat-value ' + colorClass(d.annualizedReturnPct);
+
+        const shEl = document.getElementById('bt-sharpe');
+        shEl.textContent = fmt(d.sharpeRatio);
+        shEl.className = 'stat-value ' + (d.sharpeRatio >= 1 ? 'green' : d.sharpeRatio >= 0 ? 'yellow' : 'red');
+
+        const soEl = document.getElementById('bt-sortino');
+        soEl.textContent = fmt(d.sortinoRatio);
+        soEl.className = 'stat-value ' + (d.sortinoRatio >= 1 ? 'green' : d.sortinoRatio >= 0 ? 'yellow' : 'red');
+
+        document.getElementById('bt-dd').textContent = '-' + pct(d.maxDrawdownPct ?? 0);
+
+        const wrEl = document.getElementById('bt-wr');
+        wrEl.textContent = pct(d.winRate ?? 0);
+        wrEl.className = 'stat-value ' + (d.winRate >= 0.5 ? 'green' : 'yellow');
+
+        const pfEl = document.getElementById('bt-pf');
+        pfEl.textContent = fmt(d.profitFactor);
+        pfEl.className = 'stat-value ' + (d.profitFactor >= 1.5 ? 'green' : d.profitFactor >= 1 ? 'yellow' : 'red');
+
+        document.getElementById('bt-trades').textContent = d.totalTrades ?? '0';
+
+        // Equity curve chart
+        if (d.equityCurve && d.equityCurve.length > 0) {
+          const ctx = document.getElementById('bt-equity-chart').getContext('2d');
+          if (btChart) btChart.destroy();
+          btChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: d.equityCurve.map((p, i) => i + 1),
+              datasets: [{
+                data: d.equityCurve.map(p => p.balance),
+                borderColor: '#58a6ff',
+                backgroundColor: 'rgba(88,166,255,0.08)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+              }],
+            },
+            options: {
+              ...chartDefaults,
+              scales: {
+                ...chartDefaults.scales,
+                y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => '$' + v } },
+                x: { ...chartDefaults.scales.x, title: { display: true, text: 'Trade #', color: '#8b949e', font: { size: 10 } } },
+              },
+            },
+          });
+        }
+      } catch (e) {
+        // Backtest data unavailable — panel stays hidden
+      }
+    }
+    loadBacktest();
+
+    async function updateControlStatus() {
+      try {
+        const s = await fetch('/api/control/status').then(r => r.json());
+        const el = document.getElementById('ctrl-status');
+        const pb = document.getElementById('btn-pause');
+        const rb = document.getElementById('btn-resume');
+        if (s.stopFileExists) { el.textContent='STOPPED'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#f8514922;color:#f85149;border:1px solid #f85149;'; pb.style.display='none'; rb.style.display='none'; }
+        else if (s.paused)    { el.textContent='PAUSED';  el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#d2992222;color:#d29922;border:1px solid #d29922;'; pb.style.display='none'; rb.style.display='inline-block'; }
+        else                  { el.textContent='RUNNING'; el.style.cssText='padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;'; pb.style.display='inline-block'; rb.style.display='none'; }
+      } catch {}
+    }
+    async function pauseBot()  { const t=prompt('Dashboard token:'); if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'pause',minutes:60})}); updateControlStatus(); }
+    async function resumeBot() { const t=prompt('Dashboard token:'); if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'resume'})}); updateControlStatus(); }
+    function openStopModal()  { const m=document.getElementById('stop-modal'); m.style.display='flex'; }
+    function closeStopModal() { document.getElementById('stop-modal').style.display='none'; document.getElementById('stop-token').value=''; }
+    async function confirmStop() { const t=document.getElementById('stop-token').value; if(!t) return; await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({action:'stop'})}); closeStopModal(); updateControlStatus(); }
+    updateControlStatus();
+    setInterval(updateControlStatus, 10000);
   </script>
+
+  <div id="control-bar" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;padding:10px 24px;display:flex;align-items:center;gap:12px;z-index:100;font-size:13px;">
+    <span id="ctrl-status" style="padding:3px 10px;border-radius:8px;font-size:11px;font-weight:bold;background:#23863622;color:#3fb950;border:1px solid #238636;">RUNNING</span>
+    <button id="btn-pause" onclick="pauseBot()" style="padding:5px 14px;border-radius:6px;border:1px solid #d29922;color:#d29922;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Pause 1h</button>
+    <button id="btn-resume" onclick="resumeBot()" style="display:none;padding:5px 14px;border-radius:6px;border:1px solid #3fb950;color:#3fb950;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Resume</button>
+    <span style="flex:1"></span>
+    <button onclick="openStopModal()" style="padding:5px 14px;border-radius:6px;border:1px solid #f85149;color:#f85149;background:transparent;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;">Emergency Stop</button>
+  </div>
+  <div id="stop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#161b22;border:1px solid #f85149;border-radius:8px;padding:24px;max-width:360px;width:90%;">
+      <h3 style="color:#f85149;margin-bottom:8px;">Confirm Emergency Stop</h3>
+      <p style="font-size:13px;color:#8b949e;margin-bottom:16px;">Creates STOP file, triggers emergency liquidation.</p>
+      <input type="password" id="stop-token" placeholder="Dashboard token" style="width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;font-family:'Courier New',monospace;margin-bottom:12px;" />
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeStopModal()" style="flex:1;padding:8px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;cursor:pointer;font-family:'Courier New',monospace;">Cancel</button>
+        <button onclick="confirmStop()" style="flex:1;padding:8px;background:#da3633;border:1px solid #f85149;border-radius:4px;color:#f0f6fc;cursor:pointer;font-family:'Courier New',monospace;">STOP BOT</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
