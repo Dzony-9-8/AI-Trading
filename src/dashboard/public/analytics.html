@@ -117,6 +117,12 @@
         <div class="chart-title">Daily P&L Heatmap</div>
         <div id="heatmapContent"><div class="empty-state">No trade data yet</div></div>
       </div>
+
+      <!-- Capital Allocation Treemap -->
+      <div class="chart-card full">
+        <div class="chart-title">Capital Allocation by Strategy</div>
+        <div id="treemapContent"><div class="empty-state">No open positions</div></div>
+      </div>
     </div>
 
     <!-- Rolling Win Rate Chart -->
@@ -370,8 +376,71 @@
       }
     }
 
+    // ── Capital Allocation Treemap ───────────────────────────────────────────
+    async function renderTreemap() {
+      const el = document.getElementById('treemapContent');
+      let positions = [];
+      try { positions = await fetch('/api/positions').then(r => r.json()); } catch {}
+
+      if (!positions || positions.length === 0) {
+        el.innerHTML = '<div class="empty-state">No open positions — treemap shows when bot has active trades</div>';
+        return;
+      }
+
+      // Group by strategy, sum position value
+      const groups = {};
+      for (const p of positions) {
+        const s = p.strategy || 'unknown';
+        const val = Math.abs((p.current_price ?? p.entry_price) * p.size);
+        const pnl = p.pnl ?? 0;
+        if (!groups[s]) groups[s] = { strategy: s, value: 0, pnl: 0, positions: [] };
+        groups[s].value += val;
+        groups[s].pnl += pnl;
+        groups[s].positions.push(p);
+      }
+
+      const items = Object.values(groups).sort((a, b) => b.value - a.value);
+      const total = items.reduce((s, i) => s + i.value, 0);
+      if (total === 0) { el.innerHTML = '<div class="empty-state">No position values available</div>'; return; }
+
+      // Simple squarified treemap layout
+      const W = el.offsetWidth || 800, H = 200;
+      let x = 0, rects = [];
+
+      for (const item of items) {
+        const w = Math.max((item.value / total) * W, 40);
+        const pnlPct = item.value > 0 ? (item.pnl / item.value) * 100 : 0;
+        const fill = item.pnl > 0
+          ? `rgba(63,185,80,${0.2 + Math.min(Math.abs(pnlPct) / 5, 0.7)})`
+          : item.pnl < 0
+            ? `rgba(248,81,73,${0.2 + Math.min(Math.abs(pnlPct) / 5, 0.7)})`
+            : '#21262d';
+        const pnlStr = item.pnl >= 0 ? `+$${item.pnl.toFixed(2)}` : `-$${Math.abs(item.pnl).toFixed(2)}`;
+        const valStr = `$${item.value.toFixed(0)}`;
+        rects.push({ x, w, fill, strategy: item.strategy, pnlStr, valStr, count: item.positions.length });
+        x += w;
+      }
+
+      el.innerHTML = `<div style="display:flex;width:100%;height:${H}px;gap:2px;border-radius:4px;overflow:hidden;">
+        ${rects.map(r => `
+          <div title="${r.strategy}: ${r.valStr} | P&L ${r.pnlStr}" style="
+            flex:0 0 ${r.w}px; height:${H}px; background:${r.fill};
+            border:1px solid #30363d; border-radius:3px; padding:10px 8px;
+            display:flex; flex-direction:column; justify-content:center;
+            overflow:hidden; cursor:default; min-width:0;
+          ">
+            <div style="font-size:12px;font-weight:bold;color:#f0f6fc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.strategy}</div>
+            <div style="font-size:11px;color:#8b949e;margin-top:2px;">${r.valStr} · ${r.count} pos</div>
+            <div style="font-size:13px;font-weight:bold;margin-top:4px;color:${r.pnlStr.startsWith('+') ? '#3fb950' : '#f85149'};">${r.pnlStr}</div>
+          </div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:#8b949e;margin-top:6px;">Box width = position value. Color intensity = P&L magnitude. Hover for details.</div>`;
+    }
+
     load();
     setInterval(load, 30000); // Refresh every 30s
+    renderTreemap();
+    setInterval(renderTreemap, 10000);
 
     async function loadRollingWinRate() {
       try {
