@@ -252,6 +252,15 @@ def run_scanner(dry_run: bool = False) -> Optional[str]:
     log.info(f"Starting options scan: {' '.join(cmd)}")
     send_telegram("🔍 IBKR Bot: starting options scan…")
 
+    # Force UTF-8 and plain-text Rich output so Windows CP1252 terminals
+    # don't choke on box-drawing / emoji characters in the scan report
+    scan_env = {
+        **os.environ,
+        "PYTHONUTF8":   "1",    # Python UTF-8 mode (PEP 540)
+        "PYTHONIOENCODING": "utf-8",
+        "NO_COLOR":     "1",    # tell Rich to skip ANSI / legacy-Windows rendering
+    }
+
     try:
         result = subprocess.run(
             cmd,
@@ -259,6 +268,9 @@ def run_scanner(dry_run: bool = False) -> Optional[str]:
             timeout=900,               # 15 min max
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=scan_env,
         )
         if result.returncode != 0:
             log.error(f"Scanner exited with code {result.returncode}")
