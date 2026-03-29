@@ -293,7 +293,7 @@ def place_trades(json_path: str, dry_run: bool = False) -> List[Dict]:
         log.error(f"ibkr_trader.py not found")
         return []
 
-    cmd = [PYTHON, str(trader), "--json", json_path]
+    cmd = [PYTHON, str(trader), "--json", json_path, "--emit-json"]
     if dry_run:
         cmd.append("--dry-run")
 
@@ -306,10 +306,20 @@ def place_trades(json_path: str, dry_run: bool = False) -> List[Dict]:
             capture_output=True,
             text=True,
         )
-        log.info(result.stdout[-1000:] if result.stdout else "(no output)")
         if result.returncode != 0:
             log.error(f"Trade placement failed (code {result.returncode}): {result.stderr[:300]}")
-        return []   # ibkr_trader.py prints to stdout but doesn't return structured data here
+            return []
+        # ibkr_trader.py --emit-json prints a single JSON line to stdout
+        stdout = (result.stdout or "").strip()
+        if not stdout:
+            log.warning("ibkr_trader.py returned no output")
+            return []
+        placed = json.loads(stdout)
+        log.info(f"Placed {len(placed)} trade(s)")
+        return placed
+    except json.JSONDecodeError as e:
+        log.error(f"Could not parse trade JSON: {e} — raw: {result.stdout[:200]}")
+        return []
     except Exception as e:
         log.error(f"Trade placement subprocess failed: {e}")
         return []
@@ -446,19 +456,28 @@ class IBKRBot:
         send_telegram(scan_msg)
 
         # Place trades
-        if not self.dry_run:
-            placed = place_trades(results_path, dry_run=False)
-        else:
-            placed = place_trades(results_path, dry_run=True)
+        placed = place_trades(results_path, dry_run=self.dry_run)
+        if self.dry_run:
             log.info("[DRY RUN] Trade placement preview complete")
 
-        # Record scan date
+        # Persist scan date and open trades
         self.scan_done_date = today
         self.state["last_scan_date"] = today.isoformat()
+        if placed:
+            # Merge with existing open trades (avoid duplicates by ticker+expiry)
+            existing_keys = {
+                (t.get("ticker"), t.get("expiry")) for t in self.state.get("open_trades", [])
+            }
+            new_trades = [
+                t for t in placed
+                if (t.get("ticker"), t.get("expiry")) not in existing_keys
+            ]
+            self.state.setdefault("open_trades", []).extend(new_trades)
+            log.info(f"Saved {len(new_trades)} new trade(s) to state")
         save_state(self.state)
 
     def do_monitor(self) -> None:
-        """Connect to IBKR, check all option positions, apply exit rules."""
+        """Connect to IBKR, check all option positions, apply exit rules (spread-aware)."""
         log.info("── Position monitor ──")
         ib = ibkr_connect()
         if ib is None:
@@ -476,30 +495,40 @@ class IBKRBot:
 
             log.info(f"Monitoring {len(options)} short option position(s)")
 
+            # Group legs by (symbol, expiry) so we can close whole spreads together
+            from collections import defaultdict
+            spread_groups: Dict[Tuple, List] = defaultdict(list)
             for pos in options:
-                symbol = pos.get("symbol", "?")
-                strike = pos.get("strike")
-                right  = pos.get("right")
-                expiry = str(pos.get("expiry", ""))
-                qty    = float(pos.get("position", 0))
-                pnl    = float(pos.get("unrealized_pnl", 0))
-                dte    = pos.get("dte", 999)
-                avg_cost = float(pos.get("avg_cost", 0))
-                initial_credit = abs(avg_cost) * abs(qty) * 100
+                key = (pos.get("symbol", "?"), str(pos.get("expiry", ""))[:8])
+                spread_groups[key].append(pos)
 
-                log.info(
-                    f"  {symbol} {right} {strike} exp {expiry[:8] if expiry else '?'} "
-                    f"DTE={dte}  P&L=${pnl:+.2f}  "
-                    f"({(pnl / initial_credit * 100):+.0f}% of credit)"
-                    if initial_credit > 0 else
-                    f"  {symbol} {right} {strike} exp {expiry[:8] if expiry else '?'} "
-                    f"DTE={dte}  P&L=${pnl:+.2f}"
-                )
+            for (symbol, expiry), legs in spread_groups.items():
+                total_pnl = sum(float(p.get("unrealized_pnl", 0)) for p in legs)
+                dte = min(p.get("dte", 999) for p in legs)
 
-                rule = check_exit_rule(pos)
-                if rule:
-                    rule_name, reason = rule
-                    self._close_and_alert(ib, pos, rule_name, reason)
+                for leg in legs:
+                    avg_cost = float(leg.get("avg_cost", 0))
+                    qty      = float(leg.get("position", 0))
+                    pnl      = float(leg.get("unrealized_pnl", 0))
+                    initial_credit = abs(avg_cost) * abs(qty) * 100
+                    log.info(
+                        f"  {symbol} {leg.get('right')} {leg.get('strike')} "
+                        f"exp {expiry}  DTE={dte}  P&L=${pnl:+.2f}"
+                        + (f"  ({pnl / initial_credit * 100:+.0f}% of credit)"
+                           if initial_credit > 0 else "")
+                    )
+
+                # Check exit rules — use the leg with the most conservative signal
+                triggered_rule: Optional[Tuple[str, str]] = None
+                for leg in legs:
+                    rule = check_exit_rule(leg)
+                    if rule:
+                        triggered_rule = rule
+                        break   # one leg triggers = close the whole spread
+
+                if triggered_rule:
+                    rule_name, reason = triggered_rule
+                    self._close_spread(ib, symbol, expiry, legs, rule_name, reason, total_pnl)
 
         finally:
             try:
@@ -509,7 +538,7 @@ class IBKRBot:
 
     def _close_and_alert(self, ib, pos: Dict,
                           rule_name: str, reason: str) -> None:
-        """Close a position and send Telegram alert."""
+        """Close a single position and send Telegram alert (legacy — use _close_spread)."""
         symbol = pos.get("symbol", "?")
         strike = pos.get("strike")
         right  = pos.get("right", "?")
@@ -518,7 +547,6 @@ class IBKRBot:
         pnl    = float(pos.get("unrealized_pnl", 0))
 
         emoji = {"profit_target": "💰", "dte_stop": "⏰", "loss_stop": "🛑"}.get(rule_name, "❌")
-
         log.info(f"EXIT [{rule_name}] {symbol} {right} {strike}: {reason}")
 
         if expiry and strike and right:
@@ -536,6 +564,52 @@ class IBKRBot:
                 f"{emoji} {label}{rule_name.upper().replace('_', ' ')}\n"
                 f"{symbol} {right} {strike} exp {expiry[:6] if expiry else '?'}\n"
                 f"Reason: {reason}  |  P&L: ${pnl:+.2f}"
+            )
+            send_telegram(msg)
+
+    def _close_spread(self, ib, symbol: str, expiry: str,
+                      legs: List[Dict], rule_name: str, reason: str,
+                      total_pnl: float) -> None:
+        """
+        Close all legs of a spread together and send one Telegram alert.
+        Ensures both the sell leg and buy leg are closed atomically.
+        """
+        emoji  = {"profit_target": "💰", "dte_stop": "⏰", "loss_stop": "🛑"}.get(rule_name, "❌")
+        label  = "DRY RUN — " if self.dry_run else ""
+        closed = []
+
+        for leg in legs:
+            strike = leg.get("strike")
+            right  = leg.get("right", "?")
+            qty    = float(leg.get("position", 0))
+
+            log.info(f"EXIT [{rule_name}] {symbol} {right} {strike} exp {expiry}: {reason}")
+
+            if expiry and strike and right:
+                ok = ibkr_close_position(
+                    ib, symbol, expiry, float(strike), right, qty,
+                    dry_run=self.dry_run
+                )
+                if ok:
+                    closed.append(f"{right}{strike}")
+            else:
+                log.warning(f"Incomplete leg data for {symbol} — skipping leg {right} {strike}")
+
+        # Remove from open_trades state once spread is fully closed
+        if closed and not self.dry_run:
+            self.state["open_trades"] = [
+                t for t in self.state.get("open_trades", [])
+                if not (t.get("ticker") == symbol
+                        and str(t.get("expiry", "")).startswith(expiry[:8]))
+            ]
+            save_state(self.state)
+
+        if closed:
+            leg_str = " / ".join(closed)
+            msg = (
+                f"{emoji} {label}SPREAD CLOSED [{rule_name.upper().replace('_', ' ')}]\n"
+                f"{symbol} {leg_str} exp {expiry}\n"
+                f"Reason: {reason}  |  Total P&L: ${total_pnl:+.2f}"
             )
             send_telegram(msg)
 

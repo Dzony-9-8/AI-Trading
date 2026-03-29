@@ -319,7 +319,8 @@ def trade_from_scan(json_path: str, dry_run: bool = False) -> List[Dict]:
                 log.info(f"{ticker}: max_loss ${max_loss:.0f} > limit ${max_risk_usd:.0f}, skipping")
                 continue
 
-            # Derive strike prices from strategy name and spot price
+            # Use scanner-derived strikes (present in output since fix),
+            # fall back to spot-based estimation for legacy scan files
             expiry   = metrics.get("expiration", "")
             spot     = metrics.get("spot_price", 0)
             credit   = strat.get("net_credit", 0)
@@ -336,15 +337,23 @@ def trade_from_scan(json_path: str, dry_run: bool = False) -> List[Dict]:
                 log.warning(f"{ticker}: bad expiry format {expiry}")
                 continue
 
-            # Estimate strikes from spot + strategy
             if strat_key == "bull_put_spread":
-                sell_strike = round(spot * 0.95 / 5) * 5   # ~5% OTM put, rounded to $5
-                buy_strike  = round(spot * 0.90 / 5) * 5   # 10% OTM put
-                right       = "P"
+                right = "P"
+                sell_strike = strat.get("sell_strike") or 0.0
+                buy_strike  = strat.get("buy_strike")  or 0.0
+                # Fallback: estimate if scanner didn't include strikes (old scan file)
+                if not sell_strike or not buy_strike:
+                    sell_strike = round(spot * 0.95 / 5) * 5
+                    buy_strike  = round(spot * 0.90 / 5) * 5
+                    log.warning(f"{ticker}: using estimated strikes (rescan for exact strikes)")
             else:  # bear_call_spread
-                sell_strike = round(spot * 1.05 / 5) * 5   # ~5% OTM call
-                buy_strike  = round(spot * 1.10 / 5) * 5   # 10% OTM call
-                right       = "C"
+                right = "C"
+                sell_strike = strat.get("sell_strike") or 0.0
+                buy_strike  = strat.get("buy_strike")  or 0.0
+                if not sell_strike or not buy_strike:
+                    sell_strike = round(spot * 1.05 / 5) * 5
+                    buy_strike  = round(spot * 1.10 / 5) * 5
+                    log.warning(f"{ticker}: using estimated strikes (rescan for exact strikes)")
 
             if dry_run:
                 log.info(
@@ -525,6 +534,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="IBKR Paper Trader")
     parser.add_argument("--json",       help="Path to scanner JSON output")
     parser.add_argument("--dry-run",    action="store_true", help="Show orders but don't submit")
+    parser.add_argument("--emit-json",  action="store_true", help="Output placed trades as JSON to stdout (use with --json)")
     parser.add_argument("--status",     action="store_true", help="Show open positions and pending orders")
     parser.add_argument("--cancel-all", action="store_true", help="Cancel all pending paper orders")
     parser.add_argument("--status-json", action="store_true", help="Output status as JSON to stdout")
@@ -579,11 +589,15 @@ if __name__ == "__main__":
 
     elif args.json:
         trades = trade_from_scan(args.json, dry_run=args.dry_run)
-        print(f"\n{'[DRY RUN] ' if args.dry_run else ''}Placed {len(trades)} trades:")
-        for t in trades:
-            print(f"  {t['ticker']:6s}  {t['type']}  "
-                  f"sell {t['sell_strike']} / buy {t['buy_strike']}  "
-                  f"exp {t['expiry']}  credit ${t['credit']:.2f}")
+        if args.emit_json:
+            # Machine-readable output for ibkr_bot.py to parse
+            print(json.dumps(trades))
+        else:
+            print(f"\n{'[DRY RUN] ' if args.dry_run else ''}Placed {len(trades)} trades:")
+            for t in trades:
+                print(f"  {t['ticker']:6s}  {t['type']}  "
+                      f"sell {t['sell_strike']} / buy {t['buy_strike']}  "
+                      f"exp {t['expiry']}  credit ${t['credit']:.2f}")
     else:
         # Auto-find latest scan output
         output_dir = Path(__file__).parent / "output"

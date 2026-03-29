@@ -89,6 +89,8 @@ class StrategyResult:
     delta:            float = 0.0
     theta:            float = 0.0
     vega:             float = 0.0
+    sell_strike:      float = 0.0   # actual strike prices for order placement
+    buy_strike:       float = 0.0
     pnl_prices: List[float] = field(default_factory=list)
     pnl_values: List[float] = field(default_factory=list)
     valid: bool             = True
@@ -714,6 +716,7 @@ class StrategyBuilder:
                 delta=g_sell.delta - g_buy.delta,
                 theta=g_sell.theta - g_buy.theta,
                 vega=g_sell.vega  - g_buy.vega,
+                sell_strike=sell_k, buy_strike=buy_k,
                 pnl_prices=prices, pnl_values=pnls,
             )
         except Exception as e:
@@ -770,6 +773,7 @@ class StrategyBuilder:
                 delta=g_sell.delta - g_buy.delta,
                 theta=g_sell.theta - g_buy.theta,
                 vega=g_sell.vega  - g_buy.vega,
+                sell_strike=sell_k, buy_strike=buy_k,
                 pnl_prices=prices, pnl_values=pnls,
             )
         except Exception as e:
@@ -1165,6 +1169,8 @@ class ReportGenerator:
                 "delta":            round(s.delta, 4),
                 "theta":            round(s.theta, 4),
                 "vega":             round(s.vega,  4),
+                "sell_strike":      round(s.sell_strike, 2),
+                "buy_strike":       round(s.buy_strike,  2),
                 "valid":            s.valid,
             }
 
