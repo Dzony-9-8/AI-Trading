@@ -18,7 +18,7 @@ import { attachWsServer } from './ws-broadcaster';
 export function startDashboard(): void {
   const config = getConfig();
   const app = express();
-  const PORT = config.dashboard.port;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : config.dashboard.port;
 
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
@@ -36,7 +36,7 @@ export function startDashboard(): void {
   app.use('/api/webhook', webhookRouter);
 
   // SPA fallback — serve index.html for known pages
-  const pages = ['/', '/trades', '/risk', '/logs', '/chart', '/options', '/analytics'];
+  const pages = ['/', '/trades', '/risk', '/logs', '/chart', '/options', '/analytics', '/ibkr'];
   pages.forEach(page => {
     const htmlFile = page === '/' ? 'index' : page.slice(1);
     app.get(page, (_req, res) => {

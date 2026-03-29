@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalTrader — IBKR</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding-bottom: 56px; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav a.active { color: #f0f6fc; font-weight: bold; }
+    nav .brand { color: #f0f6fc; font-weight: bold; margin-right: 16px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .section-title { font-size: 12px; color: #8b949e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .section { margin-bottom: 28px; }
+
+    /* Status bar */
+    .status-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; padding: 14px 18px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-connected    { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .badge-disconnected { background: #da363322; color: #f85149; border: 1px solid #da3633; }
+    .badge-active       { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .badge-offline      { background: #30363d; color: #8b949e; border: 1px solid #444c56; }
+    .badge-paper        { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .dot-green  { background: #3fb950; }
+    .dot-red    { background: #f85149; }
+    .dot-gray   { background: #8b949e; }
+    .status-meta { color: #8b949e; font-size: 12px; }
+    .status-spacer { flex: 1; }
+    .btn-refresh { padding: 5px 14px; border-radius: 6px; border: 1px solid #30363d; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; background: transparent; color: #c9d1d9; }
+    .btn-refresh:hover { background: #21262d; }
+
+    /* Greeks grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .card-value { font-size: 24px; font-weight: bold; color: #f0f6fc; }
+    .card-value.green  { color: #3fb950; }
+    .card-value.red    { color: #f85149; }
+    .card-value.yellow { color: #d29922; }
+    .card-value.gray   { color: #8b949e; }
+    .card-sub { font-size: 11px; color: #8b949e; margin-top: 4px; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 7px 10px; background: #21262d; color: #8b949e; font-weight: normal; font-size: 10px; text-transform: uppercase; }
+    td { padding: 9px 10px; border-top: 1px solid #21262d; }
+    tr:hover td { background: #1c2128; }
+    .positive { color: #3fb950; }
+    .negative { color: #f85149; }
+    .neutral  { color: #8b949e; }
+    .empty-row td { text-align: center; color: #8b949e; padding: 20px; }
+
+    /* Exit rule badges */
+    .exit-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+    .exit-hold        { background: #21262d; color: #8b949e; border: 1px solid #444c56; }
+    .exit-dte_warn    { background: #d2992222; color: #d29922; border: 1px solid #d29922; }
+    .exit-dte_stop    { background: #da363322; color: #f85149; border: 1px solid #da3633; }
+    .exit-profit_target { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .exit-loss_stop   { background: #da363322; color: #f85149; border: 1px solid #da3633; }
+
+    /* Order status */
+    .order-status { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+    .order-submitted   { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb; }
+    .order-presubmit   { background: #d2992222; color: #d29922; border: 1px solid #d29922; }
+    .order-filled      { background: #23863622; color: #3fb950; border: 1px solid #238636; }
+    .order-cancelled   { background: #30363d; color: #8b949e; border: 1px solid #444c56; }
+
+    /* Scan summary */
+    .scan-header { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .scan-meta { font-size: 12px; color: #8b949e; }
+    .scan-meta strong { color: #c9d1d9; }
+    .scan-link { color: #58a6ff; font-size: 12px; text-decoration: none; }
+    .scan-link:hover { text-decoration: underline; }
+    .btn-scan { padding: 5px 14px; border-radius: 6px; border: 1px solid #238636; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; background: transparent; color: #3fb950; }
+    .btn-scan:hover { background: #23863622; }
+    .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+    .score-bar { display: inline-block; width: 36px; height: 6px; border-radius: 3px; background: #21262d; vertical-align: middle; margin-left: 4px; overflow: hidden; }
+    .score-fill { height: 6px; border-radius: 3px; }
+
+    /* Bot state panel */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .info-item { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px 16px; }
+    .info-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .info-value { font-size: 14px; color: #f0f6fc; font-weight: bold; }
+
+    /* Expandable scan rows */
+    .expand-row { display: none; }
+    .expand-row td { background: #0d1117; padding: 12px 18px; }
+    .expand-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .detail-item { font-size: 11px; }
+    .detail-label { color: #8b949e; font-size: 10px; text-transform: uppercase; }
+    .detail-value { color: #c9d1d9; font-weight: bold; }
+    tr.scan-expandable { cursor: pointer; }
+    tr.scan-expandable:hover td { background: #1c2128; }
+
+    /* Control bar */
+    #control-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #161b22; border-top: 1px solid #30363d; padding: 10px 24px; display: flex; align-items: center; gap: 16px; z-index: 100; font-size: 12px; color: #8b949e; }
+    #last-updated { color: #8b949e; font-size: 11px; }
+    .auto-refresh-badge { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb; padding: 2px 8px; border-radius: 6px; font-size: 10px; }
+    #ctrl-spacer { flex: 1; }
+    #loading-indicator { color: #58a6ff; font-size: 11px; display: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">LocalTrader</span>
+    <a href="/">Overview</a>
+    <a href="/trades">Trades</a>
+    <a href="/risk">Risk</a>
+    <a href="/logs">Logs</a>
+    <a href="/chart">Chart</a>
+    <a href="/options">Options</a>
+    <a href="/analytics">Analytics</a>
+    <a href="/ibkr" class="active">IBKR</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-badge badge-paper"><span class="dot dot-green"></span>PAPER TRADING</span>
+      <span class="status-badge" id="conn-badge"><span class="dot dot-gray"></span>CONNECTING…</span>
+      <span class="status-badge" id="bot-badge"><span class="dot dot-gray"></span>BOT STATUS</span>
+      <span class="status-meta" id="last-scan-label">Last scan: —</span>
+      <span class="status-spacer"></span>
+      <button class="btn-refresh" onclick="loadAll()">Refresh</button>
+    </div>
+
+    <!-- Portfolio Greeks -->
+    <div class="section">
+      <div class="section-title">Portfolio Greeks</div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-label">Net Delta</div>
+          <div class="card-value gray" id="g-delta">—</div>
+          <div class="card-sub">directional exposure</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Theta / Day</div>
+          <div class="card-value gray" id="g-theta">—</div>
+          <div class="card-sub">time decay income</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Net Vega</div>
+          <div class="card-value gray" id="g-vega">—</div>
+          <div class="card-sub">IV sensitivity</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Days to Expiry</div>
+          <div class="card-value gray" id="g-dte">—</div>
+          <div class="card-sub">nearest position</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Open Positions</div>
+          <div class="card-value gray" id="g-count">—</div>
+          <div class="card-sub">options legs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open Positions -->
+    <div class="section">
+      <div class="section-title">Open Positions</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Type</th>
+              <th>Strike</th>
+              <th>Right</th>
+              <th>Expiry</th>
+              <th>DTE</th>
+              <th>Qty</th>
+              <th>Avg Cost</th>
+              <th>Delta</th>
+              <th>Theta</th>
+              <th>Vega</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body">
+            <tr class="empty-row"><td colspan="12">Loading positions…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pending Orders (hidden when empty) -->
+    <div class="section" id="orders-section" style="display:none;">
+      <div class="section-title">Pending Orders</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Action</th>
+              <th>Strike</th>
+              <th>Expiry</th>
+              <th>Qty</th>
+              <th>Limit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bot State -->
+    <div class="section">
+      <div class="section-title">Bot State</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Last Scan Date</div>
+          <div class="info-value" id="bs-scan-date">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Open Trades (bot)</div>
+          <div class="info-value" id="bs-open-trades">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Gateway Port</div>
+          <div class="info-value" style="color:#8b949e;">4002 (paper)</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Today's Scan</div>
+          <div class="info-value" id="bs-today-scan">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest Scan Results -->
+    <div class="section">
+      <div class="scan-header">
+        <div class="section-title" style="margin:0;">Latest Scan Results</div>
+        <span class="scan-meta" id="scan-summary">—</span>
+        <a href="/options" class="scan-link">View Full Scan →</a>
+        <button class="btn-scan" id="btn-run-scan" onclick="runScan()">Run New Scan</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ticker</th>
+              <th>Score</th>
+              <th>IV Rank</th>
+              <th>DTE</th>
+              <th>Best Strategy</th>
+              <th>POP %</th>
+            </tr>
+          </thead>
+          <tbody id="scan-body">
+            <tr class="empty-row"><td colspan="7">No scan results — run a scan to see candidates.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Control bar -->
+  <div id="control-bar">
+    <span id="loading-indicator">Loading…</span>
+    <span id="last-updated">Never updated</span>
+    <span class="auto-refresh-badge">Auto 60s</span>
+    <span id="ctrl-spacer"></span>
+    <span style="color:#8b949e;font-size:11px;">IB Gateway 127.0.0.1:4002 — paper mode</span>
+  </div>
+
+  <script>
+    let scanPolling = null;
+
+    function formatExpiry(raw) {
+      if (!raw) return '—';
+      // YYYYMMDD → YYYY-MM-DD
+      if (raw.length === 8) return raw.slice(0,4) + '-' + raw.slice(4,6) + '-' + raw.slice(6,8);
+      return raw;
+    }
+
+    function scoreColor(score) {
+      if (score >= 70) return '#3fb950';
+      if (score >= 50) return '#d29922';
+      return '#f85149';
+    }
+
+    function strategyLabel(key) {
+      const map = {
+        bull_put_spread: 'Bull Put Spd',
+        bear_call_spread: 'Bear Call Spd',
+        iron_condor: 'Iron Condor',
+        straddle: 'Straddle',
+        strangle: 'Strangle',
+      };
+      return map[key] || key;
+    }
+
+    function exitBadge(rule) {
+      const labels = {
+        hold: 'HOLD',
+        dte_warn: 'DTE WARN',
+        dte_stop: 'EXIT NOW',
+        profit_target: 'NEAR TARGET',
+        loss_stop: 'LOSS STOP',
+      };
+      return `<span class="exit-badge exit-${rule}">${labels[rule] || rule}</span>`;
+    }
+
+    function orderStatusBadge(status) {
+      if (!status) return '—';
+      const s = status.toLowerCase();
+      if (s.includes('fill')) return `<span class="order-status order-filled">${status}</span>`;
+      if (s.includes('cancel')) return `<span class="order-status order-cancelled">${status}</span>`;
+      if (s.includes('presubmit')) return `<span class="order-status order-presubmit">${status}</span>`;
+      return `<span class="order-status order-submitted">${status}</span>`;
+    }
+
+    function setGreek(id, val, suffix, invert) {
+      const el = document.getElementById(id);
+      if (val == null || val === undefined) { el.textContent = '—'; el.className = 'card-value gray'; return; }
+      const n = parseFloat(val);
+      el.textContent = (n >= 0 ? '+' : '') + n.toFixed(2) + (suffix || '');
+      // Color logic
+      const positive = invert ? n < 0 : n > 0;
+      const negative = invert ? n > 0 : n < 0;
+      el.className = 'card-value ' + (positive ? 'green' : negative ? 'red' : 'gray');
+    }
+
+    function renderPositions(positions) {
+      const tbody = document.getElementById('positions-body');
+      if (!positions || positions.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No open positions — Gateway may be offline or no options held.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = positions.map(p => {
+        const g = p.greeks || {};
+        const qty = p.quantity ?? 0;
+        const qtyClass = qty < 0 ? 'negative' : qty > 0 ? 'positive' : 'neutral';
+        const dte = g.dte ?? '—';
+        const dteClass = dte <= 21 ? 'negative' : dte <= 28 ? 'yellow' : '';
+        const right = p.right === 'C' ? 'CALL' : p.right === 'P' ? 'PUT' : (p.right || '—');
+        return `<tr>
+          <td><strong>${p.symbol || '—'}</strong></td>
+          <td style="color:#8b949e;">${p.sec_type || '—'}</td>
+          <td>${p.strike != null ? p.strike.toFixed(0) : '—'}</td>
+          <td style="color:${p.right==='C'?'#3fb950':'#58a6ff'};">${right}</td>
+          <td>${formatExpiry(p.expiry)}</td>
+          <td class="${dteClass}">${dte}</td>
+          <td class="${qtyClass}">${qty >= 0 ? '+' : ''}${qty}</td>
+          <td>${p.avg_cost != null ? '$' + p.avg_cost.toFixed(2) : '—'}</td>
+          <td class="${(g.delta||0)<0?'negative':'positive'}">${g.delta != null ? (g.delta>=0?'+':'')+g.delta.toFixed(3) : '—'}</td>
+          <td class="${(g.theta||0)>0?'positive':'neutral'}">${g.theta != null ? (g.theta>=0?'+':'')+g.theta.toFixed(4) : '—'}</td>
+          <td class="${(g.vega||0)<0?'positive':'negative'}">${g.vega != null ? (g.vega>=0?'+':'')+g.vega.toFixed(4) : '—'}</td>
+          <td>${exitBadge(p.exit_rule || 'hold')}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderOrders(orders) {
+      const section = document.getElementById('orders-section');
+      const tbody = document.getElementById('orders-body');
+      if (!orders || orders.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = '';
+      tbody.innerHTML = orders.map(o => `<tr>
+        <td><strong>${o.symbol || '—'}</strong></td>
+        <td class="${o.action==='SELL'?'negative':'positive'}">${o.action || '—'}</td>
+        <td>${o.strike != null ? o.strike.toFixed(0) : '—'}</td>
+        <td>${formatExpiry(o.expiry)}</td>
+        <td>${o.qty != null ? o.qty : '—'}</td>
+        <td>${o.lmt != null ? '$' + o.lmt.toFixed(2) : '—'}</td>
+        <td>${orderStatusBadge(o.status)}</td>
+      </tr>`).join('');
+    }
+
+    function renderBotState(bot_state) {
+      const scanDate = bot_state?.last_scan_date || null;
+      document.getElementById('bs-scan-date').textContent = scanDate || '—';
+      const trades = bot_state?.open_trades || [];
+      document.getElementById('bs-open-trades').textContent = trades.length;
+
+      // Today scan check
+      const today = new Date().toISOString().slice(0, 10);
+      const todayEl = document.getElementById('bs-today-scan');
+      if (scanDate === today) {
+        todayEl.textContent = 'Complete';
+        todayEl.style.color = '#3fb950';
+      } else {
+        todayEl.textContent = scanDate ? 'Not yet (scheduled 10:00 ET)' : 'Pending';
+        todayEl.style.color = '#8b949e';
+      }
+    }
+
+    function renderScan(scan) {
+      const tbody = document.getElementById('scan-body');
+      const summaryEl = document.getElementById('scan-summary');
+
+      if (!scan) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No scan results — run a scan to see candidates.</td></tr>';
+        summaryEl.innerHTML = '—';
+        return;
+      }
+
+      const ts = scan.timestamp ? new Date(scan.timestamp).toLocaleString() : '—';
+      const age = scan.age_minutes != null ? (scan.age_minutes < 60 ? `${scan.age_minutes}m ago` : `${Math.round(scan.age_minutes/60)}h ago`) : '';
+      summaryEl.innerHTML = `<strong>${ts}</strong> &nbsp;|&nbsp; ${scan.total_scanned} scanned &nbsp;|&nbsp; <span class="positive">${scan.passed_gates} passed gates</span> &nbsp;|&nbsp; ${age}`;
+
+      const stocks = scan.top_stocks || [];
+      if (stocks.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No candidates passed the gate filters.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = stocks.map((s, i) => {
+        const sc = parseFloat(s.score) || 0;
+        const fill = `background:${scoreColor(sc)};width:${sc}%`;
+        const ivRank = s.iv_rank != null ? s.iv_rank.toFixed(1) : '—';
+        const dte = s.dte != null ? s.dte : '—';
+        const strat = s.best_strategy ? strategyLabel(s.best_strategy) : '—';
+        const pop = s.pop != null ? s.pop + '%' : '—';
+        return `<tr>
+          <td style="color:#8b949e;">${i+1}</td>
+          <td><strong>${s.ticker}</strong><br><span style="color:#8b949e;font-size:10px;">${s.sector||''}</span></td>
+          <td><span style="color:${scoreColor(sc)};font-weight:bold;">${sc.toFixed(1)}</span><span class="score-bar"><span class="score-fill" style="${fill}"></span></span></td>
+          <td>${ivRank}</td>
+          <td>${dte}</td>
+          <td style="color:#8b949e;">${strat}</td>
+          <td class="positive">${pop}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function loadAll() {
+      const loadEl = document.getElementById('loading-indicator');
+      loadEl.style.display = 'inline';
+      try {
+        const data = await fetch('/api/ibkr/status').then(r => r.json());
+
+        // Connection badge
+        const connBadge = document.getElementById('conn-badge');
+        if (data.connection?.connected) {
+          connBadge.className = 'status-badge badge-connected';
+          connBadge.innerHTML = '<span class="dot dot-green"></span>CONNECTED';
+        } else {
+          connBadge.className = 'status-badge badge-disconnected';
+          connBadge.innerHTML = '<span class="dot dot-red"></span>DISCONNECTED';
+        }
+
+        // Bot active badge (based on last_scan_date recency)
+        const botBadge = document.getElementById('bot-badge');
+        const lastScan = data.bot_state?.last_scan_date;
+        const today = new Date().toISOString().slice(0, 10);
+        if (lastScan === today) {
+          botBadge.className = 'status-badge badge-active';
+          botBadge.innerHTML = '<span class="dot dot-green"></span>BOT ACTIVE';
+        } else {
+          botBadge.className = 'status-badge badge-offline';
+          botBadge.innerHTML = '<span class="dot dot-gray"></span>BOT IDLE';
+        }
+
+        // Last scan label
+        const scanTs = data.latest_scan?.timestamp;
+        document.getElementById('last-scan-label').textContent =
+          scanTs ? 'Last scan: ' + new Date(scanTs).toLocaleDateString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Last scan: —';
+
+        // Greeks
+        const pg = data.portfolio_greeks || {};
+        setGreek('g-delta', pg.net_delta, '', false);
+        setGreek('g-theta', pg.net_theta, '/d', false);  // positive theta = good for short options
+        setGreek('g-vega',  pg.net_vega,  '', true);     // negative vega = short vol = good
+        const dte = pg.days_to_next_expiry;
+        const dteEl = document.getElementById('g-dte');
+        if (dte != null) {
+          dteEl.textContent = dte;
+          dteEl.className = 'card-value ' + (dte <= 7 ? 'red' : dte <= 14 ? 'yellow' : 'green');
+        }
+        const cnt = (data.positions || []).length;
+        const cntEl = document.getElementById('g-count');
+        cntEl.textContent = cnt;
+        cntEl.className = 'card-value ' + (cnt > 0 ? 'green' : 'gray');
+
+        // Positions, orders, bot state, scan
+        renderPositions(data.positions);
+        renderOrders(data.orders);
+        renderBotState(data.bot_state);
+        renderScan(data.latest_scan);
+
+        document.getElementById('last-updated').textContent =
+          'Updated ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        document.getElementById('last-updated').textContent = 'Load error — ' + e.message;
+      } finally {
+        loadEl.style.display = 'none';
+      }
+    }
+
+    async function runScan() {
+      const btn = document.getElementById('btn-run-scan');
+      btn.disabled = true;
+      btn.textContent = 'Scanning…';
+      try {
+        await fetch('/api/options/run-scan', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+        // Poll scan status
+        if (scanPolling) clearInterval(scanPolling);
+        scanPolling = setInterval(async () => {
+          const st = await fetch('/api/options/scan-status').then(r => r.json());
+          if (!st.running) {
+            clearInterval(scanPolling);
+            scanPolling = null;
+            btn.disabled = false;
+            btn.textContent = 'Run New Scan';
+            loadAll();
+          } else {
+            btn.textContent = `Scanning… ${st.elapsed_seconds}s`;
+          }
+        }, 3000);
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'Run New Scan';
+      }
+    }
+
+    // Initial load + auto-refresh every 60s
+    loadAll();
+    setInterval(loadAll, 60000);
+  </script>
+</body>
+</html>

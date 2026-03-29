@@ -32,10 +32,10 @@ start /min "IBKR Dashboard" cmd /c ^
   ""C:\Users\dzoni\AppData\Local\nvm\v20.20.2\node.exe" node_modules/tsx/dist/cli.mjs src/dashboard-only.ts"
 
 :: Open browser to options page after 8 seconds (background)
-start "" cmd /c "timeout /t 8 /nobreak >nul && start http://127.0.0.1:3000/options"
+start "" cmd /c "timeout /t 8 /nobreak >nul && start http://127.0.0.1:3000/ibkr"
 
 echo  Dashboard starting in background...
-echo  Browser will open to http://127.0.0.1:3000/options
+echo  Browser will open to http://127.0.0.1:3000/ibkr
 echo.
 echo  ==========================================
 echo   IBKR Bot running — press Ctrl+C to stop
