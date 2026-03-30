@@ -1059,7 +1059,7 @@ class ReportGenerator:
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.console = Console()
+        self.console = Console(legacy_windows=False)
 
     def print_terminal(self, stocks: List[StockData], total: int, passed: int,
                        eliminated: List[StockData], claude: Dict,
@@ -1430,7 +1430,7 @@ class OptionScanner:
         self.builder  = StrategyBuilder(self.chain_f)
         self.news     = NewsAndRatings(self.cache)
         self.reporter = ReportGenerator(output_dir)
-        self.console  = Console()
+        self.console  = Console(legacy_windows=False)
 
     # ──────────────────────────────────────────────────────────────────────────
     def run(self) -> None:
