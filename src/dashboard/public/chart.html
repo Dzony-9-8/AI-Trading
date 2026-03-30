@@ -154,6 +154,12 @@
 
   <div class="toolbar">
     <span class="status-dot" id="status-dot"></span>
+
+    <div class="tf-group">
+      <button class="tf-btn active" id="mode-crypto" onclick="setMode('crypto')">CRYPTO</button>
+      <button class="tf-btn"        id="mode-stocks" onclick="setMode('stocks')">STOCKS</button>
+    </div>
+
     <select id="symbol-select"></select>
 
     <div class="tf-group">
@@ -199,12 +205,35 @@
     // ── State ──────────────────────────────────────────────────────────────
     let currentSymbol = '';
     let currentTf = '1h';
+    let currentMode = 'crypto';   // 'crypto' | 'stocks'
     let candleSeries, volumeSeries, bbUpperSeries, bbMidSeries, bbLowerSeries;
     let mainChart, volChart;
     let rsiChart, macdChart;
     let rsiSeries, macdHistSeries, macdLineSeries, macdSignalSeries;
     let sma20Series, sma50Series, sma200Series;
     let refreshTimer = null;
+
+    // ── Mode switch ────────────────────────────────────────────────────────
+    async function setMode(mode) {
+      if (mode === currentMode) return;
+      currentMode = mode;
+      document.getElementById('mode-crypto').classList.toggle('active', mode === 'crypto');
+      document.getElementById('mode-stocks').classList.toggle('active', mode === 'stocks');
+      // Stocks default to daily; crypto keeps last selected tf
+      if (mode === 'stocks' && currentTf === '1m') {
+        currentTf = '1d';
+        document.querySelectorAll('.tf-btn[data-tf]').forEach(b => {
+          b.classList.toggle('active', b.dataset.tf === '1d');
+        });
+      }
+      currentSymbol = await loadSymbols();
+      document.getElementById('symbol-select').value = currentSymbol;
+      await loadChart(currentSymbol, currentTf);
+    }
+
+    // ── API base paths depending on mode ──────────────────────────────────
+    function candlesBase()  { return currentMode === 'stocks' ? '/api/stocks' : '/api'; }
+    function symbolsBase()  { return currentMode === 'stocks' ? '/api/stocks' : '/api/candles'; }
 
     // ── Init charts ────────────────────────────────────────────────────────
     function initCharts() {
@@ -424,7 +453,7 @@
     // ── Load data ──────────────────────────────────────────────────────────
     async function loadChart(symbol, tf) {
       try {
-        const res  = await fetch(`/api/candles?symbol=${encodeURIComponent(symbol)}&timeframe=${tf}&limit=300`);
+        const res  = await fetch(`${candlesBase()}/candles?symbol=${encodeURIComponent(symbol)}&timeframe=${tf}&limit=300`);
         const data = await res.json();
 
         const noDataEl = document.getElementById('no-data');
@@ -482,8 +511,10 @@
         macdLineSeries.setData(macdData.macd);
         macdSignalSeries.setData(macdData.signal);
 
-        // Load trade markers
-        const mRes    = await fetch(`/api/candles/markers?symbol=${encodeURIComponent(symbol)}`);
+        // Load trade markers (crypto only — stocks don't have local markers)
+        const mRes    = await fetch(currentMode === 'stocks'
+          ? '/api/candles/markers?symbol=__none__'
+          : `/api/candles/markers?symbol=${encodeURIComponent(symbol)}`);
         const mData   = await mRes.json();
         if (mData.markers && mData.markers.length > 0) {
           candleSeries.setMarkers(mData.markers);
@@ -556,7 +587,7 @@
     // ── Live price update (fast poll, no full reload) ─────────────────────
     async function liveUpdate() {
       try {
-        const res  = await fetch(`/api/candles?symbol=${encodeURIComponent(currentSymbol)}&timeframe=${currentTf}&limit=2`);
+        const res  = await fetch(`${candlesBase()}/candles?symbol=${encodeURIComponent(currentSymbol)}&timeframe=${currentTf}&limit=2`);
         const data = await res.json();
         if (!data.candles || data.candles.length < 1) return;
 
@@ -571,7 +602,8 @@
 
     // ── Populate symbol selector ───────────────────────────────────────────
     async function loadSymbols() {
-      const res  = await fetch('/api/candles/symbols');
+      const url  = currentMode === 'stocks' ? '/api/stocks/symbols' : '/api/candles/symbols';
+      const res  = await fetch(url);
       const data = await res.json();
       const sel  = document.getElementById('symbol-select');
       sel.innerHTML = '';
