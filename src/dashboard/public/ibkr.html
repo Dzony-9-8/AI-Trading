@@ -234,6 +234,33 @@
       </div>
     </div>
 
+    <!-- Bot Trades -->
+    <div class="section" id="bot-trades-section">
+      <div class="section-title">Bot Trades <span id="bot-trades-count" style="color:#8b949e;font-size:12px;font-weight:normal;"></span></div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Type</th>
+              <th>Sell Strike</th>
+              <th>Buy Strike</th>
+              <th>Expiry</th>
+              <th>Credit</th>
+              <th>Max Profit</th>
+              <th>Max Loss</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Placed At</th>
+            </tr>
+          </thead>
+          <tbody id="bot-trades-body">
+            <tr class="empty-row"><td colspan="11">No bot trades recorded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Latest Scan Results -->
     <div class="section">
       <div class="scan-header">
@@ -396,6 +423,45 @@
         todayEl.textContent = scanDate ? 'Not yet (scheduled 10:00 ET)' : 'Pending';
         todayEl.style.color = '#8b949e';
       }
+
+      renderBotTrades(trades);
+    }
+
+    function renderBotTrades(trades) {
+      const tbody = document.getElementById('bot-trades-body');
+      const countEl = document.getElementById('bot-trades-count');
+      countEl.textContent = trades.length ? `(${trades.length})` : '';
+
+      if (!trades || trades.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="11">No bot trades recorded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = trades.map(t => {
+        const typeLabel = t.type === 'bull_put_spread' ? 'Bull Put Spd'
+                        : t.type === 'bear_call_spread' ? 'Bear Call Spd'
+                        : (t.type || '—');
+        const typeColor = t.type === 'bull_put_spread' ? '#58a6ff' : '#3fb950';
+        const credit   = t.credit   != null ? '$' + parseFloat(t.credit).toFixed(2)    : '—';
+        const maxProfit = t.max_profit != null ? '$' + parseFloat(t.max_profit).toFixed(0) : '—';
+        const maxLoss   = t.max_loss   != null ? '$' + parseFloat(t.max_loss).toFixed(0)   : '—';
+        const placedAt  = t.placed_at  ? new Date(t.placed_at).toLocaleString() : '—';
+        const expiry    = formatExpiry(t.expiry);
+        const isDryRun  = t.dry_run ? ' <span style="color:#8b949e;font-size:10px;">[DRY]</span>' : '';
+        return `<tr>
+          <td><strong>${t.ticker || '—'}</strong>${isDryRun}</td>
+          <td style="color:${typeColor};">${typeLabel}</td>
+          <td>${t.sell_strike != null ? t.sell_strike : '—'}</td>
+          <td>${t.buy_strike  != null ? t.buy_strike  : '—'}</td>
+          <td>${expiry}</td>
+          <td class="positive">${credit}</td>
+          <td class="positive">${maxProfit}</td>
+          <td class="negative">${maxLoss}</td>
+          <td>${t.quantity != null ? t.quantity : '—'}</td>
+          <td>${orderStatusBadge(t.status || 'Placed')}</td>
+          <td style="color:#8b949e;font-size:11px;">${placedAt}</td>
+        </tr>`;
+      }).join('');
     }
 
     function renderScan(scan) {
