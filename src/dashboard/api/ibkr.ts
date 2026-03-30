@@ -9,13 +9,20 @@ const PYTHON = process.platform === 'win32'
   ? 'C:\\Users\\dzoni\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
   : 'python3';
 
+// On Windows, stderr redirect must use NUL not /dev/null
+const STDERR_NULL = process.platform === 'win32' ? '2>NUL' : '${STDERR_NULL}';
+
+// Env with UTF-8 so Rich/Python don't crash on Windows console encoding
+const PY_ENV = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', NO_COLOR: '1' };
+
 // GET /api/ibkr/positions — legacy endpoint (keep for backwards compat with index.html Greeks strip)
 router.get('/positions', (_req, res) => {
   try {
     const scriptPath = path.join(process.cwd(), 'scripts', 'ibkr_trader.py');
-    const raw = execSync(`"${PYTHON}" "${scriptPath}" --status-json 2>/dev/null`, {
+    const raw = execSync(`"${PYTHON}" "${scriptPath}" --status-json ${STDERR_NULL}`, {
       timeout: 20000,
       encoding: 'utf8',
+      env: PY_ENV,
     });
     const data = JSON.parse(raw.trim());
     res.json(data);
@@ -36,9 +43,10 @@ router.get('/status', (_req, res) => {
 
   try {
     const scriptPath = path.join(process.cwd(), 'scripts', 'ibkr_trader.py');
-    const raw = execSync(`"${PYTHON}" "${scriptPath}" --status-json 2>/dev/null`, {
+    const raw = execSync(`"${PYTHON}" "${scriptPath}" --status-json ${STDERR_NULL}`, {
       timeout: 20000,
       encoding: 'utf8',
+      env: PY_ENV,
     });
     const live = JSON.parse(raw.trim());
     connection.connected = live.connected ?? false;

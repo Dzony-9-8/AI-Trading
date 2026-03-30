@@ -391,7 +391,7 @@ def get_positions() -> Dict:
     """Fetch open positions and pending orders from IBKR."""
     ib = connect_ibkr()
     if ib is None:
-        return {"positions": [], "orders": []}
+        return {"positions": [], "orders": [], "connected": False}
     try:
         positions = ib.positions()
         filled = []
@@ -469,7 +469,10 @@ def get_positions_json() -> Dict:
     """Fetch positions + compute Black-Scholes portfolio Greeks. Returns JSON-safe dict."""
     try:
         data = get_positions()
-        connected = True
+        connected = data.get("connected", True)  # False if connect_ibkr() returned None
+        if not connected:
+            return {"connected": False, "positions": [], "orders": [],
+                    "portfolio_greeks": {}, "has_options": False}
     except Exception as e:
         return {"connected": False, "error": str(e), "positions": [],
                 "orders": [], "portfolio_greeks": {}, "has_options": False}
